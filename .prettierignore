@@ -3,3 +3,5 @@ dist
 pnpm-lock.yaml
 static
 **/generated
+*lock.json
+*lock.yaml
