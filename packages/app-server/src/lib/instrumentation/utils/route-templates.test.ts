@@ -1,0 +1,52 @@
+import { describe, expect, it } from "vitest";
+import {
+	createRouteTemplateMatcher,
+	joinRouteTemplates,
+	normalizeRouteTemplate,
+	readRequestRouteTemplate,
+	toHttpSpanName,
+	toOrpcHttpRouteTemplate,
+	writeRequestRouteTemplate,
+} from "./route-templates";
+
+describe("route template utilities", () => {
+	it("normalizes route templates and strips query strings", () => {
+		expect(normalizeRouteTemplate("api//users/123/?q=1")).toBe("/api/users/123");
+		expect(normalizeRouteTemplate("/")).toBe("/");
+	});
+
+	it("joins route templates with normalized separators", () => {
+		expect(joinRouteTemplates("/api/auth/", "/open-api/generate-schema")).toBe("/api/auth/open-api/generate-schema");
+		expect(joinRouteTemplates("/", "/ping")).toBe("/ping");
+		expect(joinRouteTemplates("/api", "/")).toBe("/api");
+	});
+
+	it("matches the most specific template for a method and pathname", () => {
+		const match = createRouteTemplateMatcher([
+			{ method: "GET", template: "/api/users/:id", name: "userById" },
+			{ method: "GET", template: "/api/users/list", name: "listUsers" },
+			{ method: "*", template: "/api/users/*", name: "wildcard" },
+		]);
+
+		expect(match("GET", "/api/users/list")?.name).toBe("listUsers");
+		expect(match("GET", "/api/users/42")?.name).toBe("userById");
+		expect(match("POST", "/api/users/42")?.name).toBe("wildcard");
+	});
+
+	it("builds stable HTTP span names from method + template", () => {
+		expect(toHttpSpanName("get", "/api/ping")).toBe("GET /api/ping");
+	});
+
+	it("converts oRPC templates to /api-prefixed HTTP templates", () => {
+		expect(toOrpcHttpRouteTemplate("/ping")).toBe("/api/ping");
+		expect(toOrpcHttpRouteTemplate("/api/ping")).toBe("/api/ping");
+	});
+
+	it("reads and writes request route templates on request objects", () => {
+		const request = new Request("http://localhost/api/ping");
+		expect(readRequestRouteTemplate(request)).toBeUndefined();
+
+		writeRequestRouteTemplate(request, "/api/ping");
+		expect(readRequestRouteTemplate(request)).toBe("/api/ping");
+	});
+});

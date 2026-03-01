@@ -8,16 +8,18 @@ import {
 	recordOrpcMetrics,
 } from "../../../lib/instrumentation/metrics";
 import { withSpan } from "../../../lib/instrumentation/tracer";
+import { writeRequestRouteTemplate } from "../../../lib/instrumentation/utils/route-templates";
 import { createOrpcHandler } from "./orpc";
+import {
+	createOrpcFallbackRouteMetadata,
+	resolveOrpcHttpRouteTemplate,
+	type OrpcRouteMetadata,
+} from "./route-template";
 
 const logger = getLogger();
 
 function getPathname(url: string): string {
 	return new URL(url).pathname;
-}
-
-function getOrpcProcedurePath(pathname: string): string {
-	return pathname.startsWith("/api") ? pathname.slice(4) || "/" : pathname;
 }
 
 function parseContentLength(rawValue: string | undefined): number | undefined {
@@ -31,8 +33,9 @@ export function initRpcHandlerRoutes(app: Hono, router: Parameters<typeof create
 
 	app.use("/api/*", async (c, next) => {
 		const pathname = getPathname(c.req.url);
-		const procedure = getOrpcProcedurePath(pathname);
-		const route = c.req.path || pathname;
+		const routeMetadata: OrpcRouteMetadata = createOrpcFallbackRouteMetadata(pathname);
+		let procedure = routeMetadata.procedure;
+		let route = "/api/*";
 		const method = c.req.method;
 		const requestStartedAt = performance.now();
 		const endInFlight = beginHttpRequestMetrics(method, route);
@@ -44,15 +47,31 @@ export function initRpcHandlerRoutes(app: Hono, router: Parameters<typeof create
 			const orpcStartedAt = performance.now();
 			const dispatchResult = await withSpan(
 				"orpc.dispatch",
-				() =>
-					orpcHandler.handle(c.req.raw, {
-						context: { headers: c.req.raw.headers },
+				async (span) => {
+					const result = await orpcHandler.handle(c.req.raw, {
+						context: {
+							headers: c.req.raw.headers,
+							orpcRouteMetadata: routeMetadata,
+						},
 						prefix: "/api",
-					}),
+					});
+					if (result.matched) {
+						const resolvedRouteTemplate = resolveOrpcHttpRouteTemplate(routeMetadata);
+						procedure = routeMetadata.procedure;
+						route = resolvedRouteTemplate;
+
+						span.setAttribute("http.route", resolvedRouteTemplate);
+						span.setAttribute("orpc.procedure", procedure);
+						if (routeMetadata.operationId) {
+							span.setAttribute("orpc.operation_id", routeMetadata.operationId);
+						}
+					}
+					return result;
+				},
 				{
 					attributes: {
 						"http.method": method,
-						"http.route": "/api/*",
+						"http.route": route,
 						"orpc.procedure": procedure,
 					},
 					kind: SpanKind.INTERNAL,
@@ -64,6 +83,7 @@ export function initRpcHandlerRoutes(app: Hono, router: Parameters<typeof create
 			responseSizeBytes = parseContentLength(response.headers.get("content-length") ?? undefined);
 
 			if (!dispatchResult.matched) return;
+			writeRequestRouteTemplate(c.req.raw, route);
 
 			recordOrpcMetrics({
 				procedure,

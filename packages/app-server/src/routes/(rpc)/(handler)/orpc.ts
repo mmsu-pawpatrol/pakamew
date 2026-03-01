@@ -6,6 +6,7 @@ import type { router as rpcRouter } from "..";
 import { $ESCALATE } from "../../../lib/constants";
 import { config } from "../../../lib/instrumentation/config";
 import { getLogger } from "../../../lib/instrumentation/logger";
+import { applyOrpcRouteMetadata, type OrpcRouteMetadataCarrier } from "./route-template";
 
 const logger = getLogger();
 
@@ -19,6 +20,12 @@ export function createOrpcHandler(router: typeof rpcRouter) {
 				logRequestAbort: config.OBS_ENABLE_ORPC_LOG_REQUEST_ABORT,
 				generateId: () => crypto.randomUUID(),
 			}),
+		],
+		clientInterceptors: [
+			async (options) => {
+				applyOrpcRouteMetadata(options.context as OrpcRouteMetadataCarrier, options.procedure, options.path);
+				return options.next();
+			},
 		],
 		interceptors: [
 			onError((error) => {
