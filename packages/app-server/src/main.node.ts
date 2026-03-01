@@ -14,15 +14,8 @@ async function main() {
 			logger.info({ event: "prisma.client.connected" }, "Prisma client connected successfully");
 		});
 
-	serve({ fetch: app.fetch, hostname: env.HOST, port: env.PORT }, () => {
-		logger.info(
-			{
-				event: "server.listening",
-				host: env.HOST,
-				port: env.PORT,
-			},
-			"Listening for requests",
-		);
+	serve({ fetch: app.fetch, hostname: env.HOST, port: env.PORT }, (info) => {
+		logger.info({ event: "server.listening" }, "Listening for requests: " + info.address);
 	});
 }
 

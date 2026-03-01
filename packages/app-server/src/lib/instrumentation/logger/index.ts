@@ -6,12 +6,15 @@ import { initLogger } from "./core";
 const logger = initLogger(config);
 
 logger.info(
-	{
-		event: "app.startup",
-		config: config,
-		env: getSchemaRawEnvSnapshot(EnvSchema.shape),
-	},
-	"App Startup",
+	{ event: "app.startup" },
+	JSON.stringify(
+		{
+			config: config,
+			env: getSchemaRawEnvSnapshot(EnvSchema.shape),
+		},
+		null,
+		2,
+	),
 );
 
 export function getLogger() {
