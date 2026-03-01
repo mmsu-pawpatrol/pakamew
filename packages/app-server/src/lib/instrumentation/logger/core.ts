@@ -1,3 +1,4 @@
+import { trace } from "@opentelemetry/api";
 import pino, { type DestinationStream, type Logger, type LoggerOptions } from "pino";
 import { getEnv } from "../../../env";
 import { $ESCALATE } from "../../constants";
@@ -120,6 +121,17 @@ export function initLogger(config: LoggerConfig, destination?: DestinationStream
 		base: baseFields,
 		redact: {
 			paths: ["req.headers.authorization", "req.headers.cookie", "headers.authorization", "headers.cookie"],
+		},
+		mixin() {
+			const span = trace.getActiveSpan();
+			if (!span) return {};
+
+			const spanContext = span.spanContext();
+			return {
+				trace_id: spanContext.traceId,
+				span_id: spanContext.spanId,
+				trace_flags: spanContext.traceFlags,
+			};
 		},
 		hooks: {
 			logMethod(args, method) {
