@@ -1,3 +1,10 @@
+/**
+ * @internal
+ * For unknown reasons, this custom Prisma Logging integration is not working as
+ * expected. It is not logging any queries, info, warnings, or errors. As an
+ * alternative, we are using OpenTelemetry for Prisma instrumentation.
+ */
+
 import { $ESCALATE } from "../constants";
 import { config } from "../instrumentation/config";
 import { getLogger } from "../instrumentation/logger";
