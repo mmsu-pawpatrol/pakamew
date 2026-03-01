@@ -12,6 +12,7 @@ import { config } from "./config";
 interface TelemetryState {
 	started: boolean;
 	hooksRegistered: boolean;
+	disabledLogged: boolean;
 	sdk: NodeSDK | undefined;
 }
 
@@ -28,6 +29,7 @@ function getGlobalTelemetryState(): TelemetryState {
 	globalState.__pakamewTelemetryState ??= {
 		started: false,
 		hooksRegistered: false,
+		disabledLogged: false,
 		sdk: undefined,
 	};
 	return globalState.__pakamewTelemetryState;
@@ -49,16 +51,16 @@ function registerShutdownHooks(state: TelemetryState): void {
 	});
 }
 
-function logOpenTelemetryStarted(): void {
+function logOpenTelemetryStarted(params: { endpoint: string; serviceName: string; serviceVersion: string }): void {
 	void import("./logger")
 		.then(({ getLogger }) => {
 			getLogger().child({ scope: "otel" }).info(
 				{
 					event: "instrumentation.otel.started",
-					endpoint: config.OTEL_EXPORTER_OTLP_ENDPOINT,
-					service: config.OTEL_SERVICE_NAME,
-					version: config.OTEL_SERVICE_VERSION,
-					environment: config.OTEL_DEPLOYMENT_ENVIRONMENT,
+					endpoint: params.endpoint,
+					service: params.serviceName,
+					version: params.serviceVersion,
+					environment: config.otel?.OTEL_DEPLOYMENT_ENVIRONMENT,
 					preset: config.OBS_PRESET,
 				},
 				"OpenTelemetry SDK started",
@@ -67,24 +69,51 @@ function logOpenTelemetryStarted(): void {
 		.catch(() => undefined);
 }
 
-export function initOpenTelemetry(): NodeSDK {
+function logOpenTelemetryDisabled(): void {
+	void import("./logger")
+		.then(({ getLogger }) => {
+			getLogger().child({ scope: "otel" }).warn(
+				{
+					event: "instrumentation.otel.disabled",
+					enabled: false,
+					preset: config.OBS_PRESET,
+				},
+				"OpenTelemetry SDK disabled",
+			);
+		})
+		.catch(() => undefined);
+}
+
+export function initOpenTelemetry(): NodeSDK | undefined {
 	const state = getGlobalTelemetryState();
+	if (!config.otel) {
+		if (!state.disabledLogged) {
+			logOpenTelemetryDisabled();
+			state.disabledLogged = true;
+		}
+		return undefined;
+	}
+
 	if (state.started && state.sdk) return state.sdk;
 
+	const endpoint = config.otel.OTEL_EXPORTER_OTLP_ENDPOINT;
+	const serviceName = config.otel.OTEL_SERVICE_NAME;
+	const serviceVersion = config.otel.OTEL_SERVICE_VERSION;
+
 	const traceExporter = new OTLPTraceExporter({
-		url: toOtlpSignalUrl(config.OTEL_EXPORTER_OTLP_ENDPOINT, "/v1/traces"),
+		url: toOtlpSignalUrl(endpoint, "/v1/traces"),
 	});
 
 	const metricExporter = new OTLPMetricExporter({
-		url: toOtlpSignalUrl(config.OTEL_EXPORTER_OTLP_ENDPOINT, "/v1/metrics"),
+		url: toOtlpSignalUrl(endpoint, "/v1/metrics"),
 	});
 
 	const sdk = new NodeSDK({
 		sampler: new AlwaysOnSampler(),
 		resource: resourceFromAttributes({
-			"service.name": config.OTEL_SERVICE_NAME,
-			"service.version": config.OTEL_SERVICE_VERSION,
-			"deployment.environment": config.OTEL_DEPLOYMENT_ENVIRONMENT,
+			"service.name": serviceName,
+			"service.version": serviceVersion,
+			"deployment.environment": config.otel.OTEL_DEPLOYMENT_ENVIRONMENT,
 			"observability.preset": config.OBS_PRESET,
 		}),
 		traceExporter,
@@ -105,7 +134,7 @@ export function initOpenTelemetry(): NodeSDK {
 	});
 
 	sdk.start();
-	logOpenTelemetryStarted();
+	logOpenTelemetryStarted({ endpoint, serviceName, serviceVersion });
 
 	state.started = true;
 	state.sdk = sdk;

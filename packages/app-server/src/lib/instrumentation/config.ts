@@ -2,6 +2,16 @@ import { getEnv } from "../../env";
 import type { CoreEnv } from "../../env/core";
 import type { ObservabilityEnv, ObservabilitySwitchesEnv } from "../../env/observability";
 
+const { OTEL_ENABLED } = getEnv((env) => [env.OTEL_ENABLED]);
+const otel = OTEL_ENABLED
+	? getEnv((shape) => [
+			shape.OTEL_EXPORTER_OTLP_ENDPOINT,
+			shape.OTEL_SERVICE_NAME,
+			shape.OTEL_SERVICE_VERSION,
+			shape.OTEL_DEPLOYMENT_ENVIRONMENT,
+		])
+	: undefined;
+
 type Preset = NonNullable<ObservabilityEnv["OBS_PRESET"]>;
 type PresetDefaults = Partial<ObservabilityEnv & ObservabilitySwitchesEnv>;
 
@@ -61,11 +71,6 @@ const PRESET = PRESET_DEFAULTS[OBS_PRESET];
 const { OBS_ENABLE_DEV_TRACING } = getEnv((env) => [env.OBS_ENABLE_DEV_TRACING]);
 
 const env = getEnv((shape) => [
-	shape.OTEL_EXPORTER_OTLP_ENDPOINT,
-	shape.OTEL_SERVICE_NAME,
-	shape.OTEL_SERVICE_VERSION,
-	shape.OTEL_DEPLOYMENT_ENVIRONMENT,
-
 	shape.OBS_ERROR_TRACE_WINDOW_MS,
 	shape.OBS_LOG_LEVEL.default(OBS_ENABLE_DEV_TRACING ? "trace" : PRESET.OBS_LOG_LEVEL),
 	shape.OBS_METRICS_DETAIL_LEVEL.default(PRESET.OBS_METRICS_DETAIL_LEVEL),
@@ -79,5 +84,6 @@ const env = getEnv((shape) => [
 export const config = {
 	OBS_PRESET,
 	OBS_ENABLE_DEV_TRACING,
+	otel,
 	...env,
 };

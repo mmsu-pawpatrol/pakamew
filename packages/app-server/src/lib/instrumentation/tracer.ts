@@ -9,7 +9,10 @@ import {
 } from "@opentelemetry/api";
 import { config } from "./config";
 
-const manualTracer = trace.getTracer(`${config.OTEL_SERVICE_NAME}.manual`, config.OTEL_SERVICE_VERSION);
+const tracerServiceName = config.otel?.OTEL_SERVICE_NAME ?? "pakamew-server";
+const tracerServiceVersion = config.otel?.OTEL_SERVICE_VERSION ?? "0.0.0";
+
+const manualTracer = trace.getTracer(`${tracerServiceName}.manual`, tracerServiceVersion);
 
 export interface ManualSpanOptions {
 	attributes?: Attributes;

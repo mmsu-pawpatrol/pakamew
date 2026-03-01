@@ -7,14 +7,16 @@ import { initRestRoutes, initRpcRoutes } from "./routes";
 export function createApp() {
 	const app = new Hono();
 
-	app.use(
-		"*",
-		httpInstrumentationMiddleware({
-			captureActiveRequests: true,
-			serviceName: config.OTEL_SERVICE_NAME,
-			serviceVersion: config.OTEL_SERVICE_VERSION,
-		}),
-	);
+	if (config.otel) {
+		app.use(
+			"*",
+			httpInstrumentationMiddleware({
+				captureActiveRequests: true,
+				serviceName: config.otel.OTEL_SERVICE_NAME,
+				serviceVersion: config.otel.OTEL_SERVICE_VERSION,
+			}),
+		);
+	}
 
 	initRestRoutes(app);
 	initRpcRoutes(app);

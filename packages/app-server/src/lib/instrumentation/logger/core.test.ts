@@ -9,10 +9,12 @@ interface LoggedRecord extends Record<string, unknown> {
 }
 
 const TEST_CONFIG: LoggerConfig = {
-	OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:4318",
-	OTEL_SERVICE_NAME: "pakamew-server",
-	OTEL_SERVICE_VERSION: "0.0.0",
-	OTEL_DEPLOYMENT_ENVIRONMENT: "test",
+	otel: {
+		OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:4318",
+		OTEL_SERVICE_NAME: "pakamew-server",
+		OTEL_SERVICE_VERSION: "0.0.0",
+		OTEL_DEPLOYMENT_ENVIRONMENT: "test",
+	},
 	OBS_PRESET: "test",
 	OBS_LOG_LEVEL: "info",
 	OBS_ERROR_TRACE_WINDOW_MS: 1_000,

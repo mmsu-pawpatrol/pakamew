@@ -1,6 +1,9 @@
 import z from "zod";
 
 export interface OtelEnv {
+	/** Toggle OpenTelemetry SDK/exporter wiring. */
+	OTEL_ENABLED: boolean;
+
 	/** OTLP endpoint used by OpenTelemetry exporters. */
 	OTEL_EXPORTER_OTLP_ENDPOINT: string;
 
@@ -15,11 +18,13 @@ export interface OtelEnv {
 }
 
 export const OtelEnvSchema = z.object({
-	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().min(1).default("http://127.0.0.1:4318"),
+	OTEL_ENABLED: z.coerce.boolean().default(false),
 
-	OTEL_SERVICE_NAME: z.string().min(1).default("pakamew-server"),
+	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().min(1),
 
-	OTEL_SERVICE_VERSION: z.string().min(1).default("0.0.0"),
+	OTEL_SERVICE_NAME: z.string().min(1),
+
+	OTEL_SERVICE_VERSION: z.string().min(1),
 
 	OTEL_DEPLOYMENT_ENVIRONMENT: z.string().min(1).optional(),
 }) satisfies z.ZodType<OtelEnv>;
