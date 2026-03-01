@@ -3,6 +3,16 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
+	"exports": {
+		"./lib/*": {
+			"types": "./lib/*.ts",
+			"import": "./lib/*.ts"
+		},
+		"./utils/*": {
+			"types": "./utils/*/index.ts",
+			"import": "./utils/*/index.ts"
+		}
+	},
 	"scripts": {},
 	"dependencies": {},
 	"devDependencies": {}

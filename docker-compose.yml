@@ -1,0 +1,37 @@
+services:
+  lgtm:
+    image: grafana/otel-lgtm:0.19.1
+    container_name: pakamew-lgtm
+    restart: unless-stopped
+    env_file:
+      - path: ./packages/observability/open-telemetry/.env
+        required: false
+    ports:
+      - "3001:3000" # Grafana
+      - "4318:4318" # OpenTelemetry Collector
+    volumes:
+      - ./packages/observability/open-telemetry/otelcol-config.tail.yaml:/otel-lgtm/otelcol-config.yaml:ro
+      - pakamew-lgtm-data:/otel-lgtm/data
+
+  postgres:
+    image: postgres:17.4
+    container_name: pakamew-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pakamew
+      POSTGRES_USER: pakamew
+      POSTGRES_PASSWORD: pakamew
+    ports:
+      - "5432:5432" # PostgreSQL database
+    volumes:
+      - pakamew-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pakamew -d pakamew"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  pakamew-postgres-data:
+  pakamew-lgtm-data:

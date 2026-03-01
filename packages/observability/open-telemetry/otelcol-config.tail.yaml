@@ -1,0 +1,79 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - http://*
+  prometheus/collector:
+    config:
+      scrape_configs:
+        - job_name: opentelemetry-collector
+          scrape_interval: 1s
+          static_configs:
+            - targets: ["127.0.0.1:8888"]
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /ready
+
+processors:
+  batch:
+  tail_sampling:
+    decision_wait: ${env:TAIL_SAMPLING_DECISION_WAIT:-10s}
+    num_traces: ${env:TAIL_SAMPLING_NUM_TRACES:-50000}
+    expected_new_traces_per_sec: ${env:TAIL_SAMPLING_EXPECTED_NEW_TRACES_PER_SEC:-1000}
+    policies:
+      - name: keep-error-traces
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: keep-latency-traces
+        type: latency
+        latency:
+          threshold_ms: ${env:TAIL_SAMPLING_LATENCY_THRESHOLD_MS:-1000}
+      - name: sample-non-error-traces
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: ${env:TAIL_SAMPLING_NON_ERROR_PERCENT:-2}
+
+exporters:
+  otlphttp/metrics:
+    endpoint: http://127.0.0.1:9090/api/v1/otlp
+    tls:
+      insecure: true
+  otlphttp/traces:
+    endpoint: http://127.0.0.1:4418
+    tls:
+      insecure: true
+  otlphttp/logs:
+    endpoint: http://127.0.0.1:3100/otlp
+    tls:
+      insecure: true
+  otlp/profiles:
+    endpoint: http://127.0.0.1:4040
+    tls:
+      insecure: true
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlphttp/traces]
+    metrics:
+      receivers: [otlp, prometheus/collector]
+      processors: [batch]
+      exporters: [otlphttp/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/logs]
+    profiles:
+      receivers: [otlp]
+      exporters: [otlp/profiles]

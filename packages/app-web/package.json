@@ -4,11 +4,13 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview"
+		"dev": "vite --configLoader runner",
+		"build": "vite build --configLoader runner",
+		"preview": "vite preview --configLoader runner"
 	},
 	"dependencies": {
+		"@pakamew/server": "workspace:*",
+		"@pakamew/shared": "workspace:*",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0"
 	},

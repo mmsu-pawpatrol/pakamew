@@ -1,5 +1,6 @@
-import type { Config } from "prettier";
-
+/**
+ * @type {import('prettier').Config}
+ */
 export default {
 	arrowParens: "always",
 	bracketSameLine: true,
@@ -17,5 +18,6 @@ export default {
 	vueIndentScriptAndStyle: true,
 	tabWidth: 2,
 	singleQuote: false,
+
 	plugins: ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
-} satisfies Config;
+};

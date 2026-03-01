@@ -1,0 +1,40 @@
+{
+	"version": 1,
+	"skills": {
+		"code-review": {
+			"source": "getsentry/skills",
+			"sourceType": "github",
+			"computedHash": "f0604d278cfd4eac4dac29eb297a5c6b6ebfb9f020235e8aafbe2eff0e42a147"
+		},
+		"code-simplifier": {
+			"source": "getsentry/skills",
+			"sourceType": "github",
+			"computedHash": "ff9cb10181e31daf1f1644754c491601a7849dff4b4536a1d0ec4f97f680348e"
+		},
+		"find-bugs": {
+			"source": "getsentry/skills",
+			"sourceType": "github",
+			"computedHash": "7bf00be700d1d205b747126aa96d3587bbc2855cd09897614676e179eebe35ed"
+		},
+		"prisma-cli": {
+			"source": "prisma/skills",
+			"sourceType": "github",
+			"computedHash": "500f80cfb0bebbaf7ef60645b43eb126e6489d6a1a2a592983c37a3ef8a789b5"
+		},
+		"prisma-client-api": {
+			"source": "prisma/skills",
+			"sourceType": "github",
+			"computedHash": "ea94a5efcd3240e45c389bcdadd4613643245d226ffe1318c396e3b3edeb72ee"
+		},
+		"prisma-database-setup": {
+			"source": "prisma/skills",
+			"sourceType": "github",
+			"computedHash": "b05e88d284c4a754d3624697c2f749e21f7da3fc1f4319b6658df318e84b0dd9"
+		},
+		"security-review": {
+			"source": "getsentry/skills",
+			"sourceType": "github",
+			"computedHash": "cc631e7761e4bb8f844e931e3019e9abf8a36520137480ee60b897314776b0de"
+		}
+	}
+}

@@ -1,2 +1,1 @@
-pnpm exec lint-staged
-pnpm tscheck
+pnpm tsgo:check; pnpm exec lint-staged
