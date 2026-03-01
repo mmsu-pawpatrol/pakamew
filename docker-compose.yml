@@ -7,8 +7,8 @@ services:
       - path: ./packages/observability/open-telemetry/.env
         required: false
     ports:
-      - "3001:3000"
-      - "4318:4318"
+      - "3001:3000" # Grafana
+      - "4318:4318" # OpenTelemetry Collector
     volumes:
       - ./packages/observability/open-telemetry/otelcol-config.tail.yaml:/otel-lgtm/otelcol-config.yaml:ro
 
@@ -21,7 +21,7 @@ services:
       POSTGRES_USER: pakamew
       POSTGRES_PASSWORD: pakamew
     ports:
-      - "5432:5432"
+      - "5432:5432" # PostgreSQL database
     volumes:
       - pakamew-postgres-data:/var/lib/postgresql/data
     healthcheck:

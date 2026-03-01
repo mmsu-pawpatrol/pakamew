@@ -46,7 +46,7 @@ wss.on("connection", (ws, req) => {
 	}
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3100;
 server.listen(PORT, () => {
 	console.log(`🚀 Global Stream Relay Server running on port ${PORT}`);
 });

@@ -46,4 +46,4 @@ parser.on("data", (frameData) => {
 	});
 });
 
-server.listen(3000, "0.0.0.0", () => console.log(`🚀 Server on http://localhost:3000`));
+server.listen(3100, "0.0.0.0", () => console.log(`🚀 Server on http://localhost:3100`));
