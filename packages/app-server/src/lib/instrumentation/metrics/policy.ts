@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { OBS_METRICS_DETAIL_LEVEL_WEIGHTS } from "../utils/enums";
 import { addAttribute, type MetricAttributes } from "./core";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -62,11 +63,19 @@ export function toStatusClass(statusCode: number): string {
 }
 
 export function addPathAttribute(attributes: MetricAttributes, key: string, pathValue: string | undefined): void {
-	if (!pathValue || config.OBS_METRICS_DETAIL_LEVEL !== "medium") return;
+	if (!pathValue) return;
+	const a = OBS_METRICS_DETAIL_LEVEL_WEIGHTS[config.OBS_METRICS_DETAIL_LEVEL];
+	const b = OBS_METRICS_DETAIL_LEVEL_WEIGHTS.medium;
+	if (a < b) return;
+
 	addAttribute(attributes, key, sanitizePathValue(pathValue));
 }
 
 export function addDbTargetAttribute(attributes: MetricAttributes, target: string | undefined): void {
-	if (!target || config.OBS_METRICS_DETAIL_LEVEL !== "high") return;
+	if (!target) return;
+	const a = OBS_METRICS_DETAIL_LEVEL_WEIGHTS[config.OBS_METRICS_DETAIL_LEVEL];
+	const b = OBS_METRICS_DETAIL_LEVEL_WEIGHTS.high;
+	if (a < b) return;
+
 	addAttribute(attributes, "db.target", sanitizeDbTarget(target));
 }
