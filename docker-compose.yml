@@ -11,6 +11,7 @@ services:
       - "4318:4318" # OpenTelemetry Collector
     volumes:
       - ./packages/observability/open-telemetry/otelcol-config.tail.yaml:/otel-lgtm/otelcol-config.yaml:ro
+      - pakamew-lgtm-data:/otel-lgtm/data
 
   postgres:
     image: postgres:17.4
@@ -33,3 +34,4 @@ services:
 
 volumes:
   pakamew-postgres-data:
+  pakamew-lgtm-data:
