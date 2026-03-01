@@ -1,10 +1,7 @@
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
-import { PinoInstrumentation } from "@opentelemetry/instrumentation-pino";
 import { resourceFromAttributes } from "@opentelemetry/resources";
-import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { AlwaysOnSampler } from "@opentelemetry/sdk-trace-base";
@@ -52,16 +49,30 @@ function registerShutdownHooks(state: TelemetryState): void {
 	});
 }
 
+function logOpenTelemetryStarted(): void {
+	void import("./logger")
+		.then(({ getLogger }) => {
+			getLogger().child({ scope: "otel" }).info(
+				{
+					event: "instrumentation.otel.started",
+					endpoint: config.OTEL_EXPORTER_OTLP_ENDPOINT,
+					service: config.OTEL_SERVICE_NAME,
+					version: config.OTEL_SERVICE_VERSION,
+					environment: config.OTEL_DEPLOYMENT_ENVIRONMENT,
+					preset: config.OBS_PRESET,
+				},
+				"OpenTelemetry SDK started",
+			);
+		})
+		.catch(() => undefined);
+}
+
 export function initOpenTelemetry(): NodeSDK {
 	const state = getGlobalTelemetryState();
 	if (state.started && state.sdk) return state.sdk;
 
 	const traceExporter = new OTLPTraceExporter({
 		url: toOtlpSignalUrl(config.OTEL_EXPORTER_OTLP_ENDPOINT, "/v1/traces"),
-	});
-
-	const logExporter = new OTLPLogExporter({
-		url: toOtlpSignalUrl(config.OTEL_EXPORTER_OTLP_ENDPOINT, "/v1/logs"),
 	});
 
 	const metricExporter = new OTLPMetricExporter({
@@ -77,7 +88,6 @@ export function initOpenTelemetry(): NodeSDK {
 			"observability.preset": config.OBS_PRESET,
 		}),
 		traceExporter,
-		logRecordProcessors: [new BatchLogRecordProcessor(logExporter)],
 		metricReaders: [
 			new PeriodicExportingMetricReader({
 				exportIntervalMillis: config.OBS_METRICS_EXPORT_INTERVAL_MS,
@@ -87,7 +97,6 @@ export function initOpenTelemetry(): NodeSDK {
 		instrumentations: [
 			new ORPCInstrumentation(),
 			new PrismaInstrumentation(),
-			new PinoInstrumentation(),
 			new PgInstrumentation({
 				addSqlCommenterCommentToQueries: true,
 				ignoreConnectSpans: true,
@@ -96,6 +105,7 @@ export function initOpenTelemetry(): NodeSDK {
 	});
 
 	sdk.start();
+	logOpenTelemetryStarted();
 
 	state.started = true;
 	state.sdk = sdk;

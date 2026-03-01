@@ -1,6 +1,9 @@
 import pino, { type DestinationStream, type Logger, type LoggerOptions } from "pino";
+import { getEnv } from "../../../env";
 import { $ESCALATE } from "../../constants";
 import type { config } from "../config";
+
+const { NODE_ENV } = getEnv((env) => [env.NODE_ENV]);
 
 const DEFAULT_ESCALATION_REASON = "error";
 
@@ -9,6 +12,7 @@ export type LoggerConfig = Pick<
 	| "OTEL_SERVICE_NAME"
 	| "OTEL_SERVICE_VERSION"
 	| "OTEL_DEPLOYMENT_ENVIRONMENT"
+	| "OTEL_EXPORTER_OTLP_ENDPOINT"
 	| "OBS_PRESET"
 	| "OBS_LOG_LEVEL"
 	| "OBS_ERROR_TRACE_WINDOW_MS"
@@ -29,9 +33,47 @@ function resolveEscalationReason(marker: EscalationLogEntry[typeof $ESCALATE]): 
 	return undefined;
 }
 
+function toOtlpLogsEndpoint(endpoint: string): string {
+	return `${endpoint.replace(/\/+$/, "")}/v1/logs`;
+}
+
+function buildLoggerTransport(config: LoggerConfig): NonNullable<LoggerOptions["transport"]> {
+	const otelLogsTarget = {
+		target: "pino-opentelemetry-transport",
+		options: {
+			loggerName: config.OTEL_SERVICE_NAME,
+			serviceVersion: config.OTEL_SERVICE_VERSION,
+			resourceAttributes: {
+				"service.name": config.OTEL_SERVICE_NAME,
+				"service.version": config.OTEL_SERVICE_VERSION,
+				"deployment.environment": config.OTEL_DEPLOYMENT_ENVIRONMENT,
+				"observability.preset": config.OBS_PRESET,
+			},
+			logRecordProcessorOptions: {
+				recordProcessorType: "batch",
+				exporterOptions: {
+					protocol: "http/protobuf",
+					protobufExporterOptions: {
+						url: toOtlpLogsEndpoint(config.OTEL_EXPORTER_OTLP_ENDPOINT),
+					},
+				},
+			},
+		},
+	} as const;
+
+	if (NODE_ENV === "development") {
+		return {
+			targets: [{ target: "pino-pretty", options: { colorize: true } }, otelLogsTarget],
+		};
+	}
+
+	return {
+		targets: [{ target: "pino/file", options: { destination: 1 } }, otelLogsTarget],
+	};
+}
+
 export function initLogger(config: LoggerConfig, destination?: DestinationStream): Logger {
 	let resetTraceTimeout: NodeJS.Timeout | undefined;
-	const targetDestination = destination ?? pino.destination(1);
 	const defaultLevel = config.OBS_LOG_LEVEL;
 	const traceWindowMs = config.OBS_ERROR_TRACE_WINDOW_MS;
 
@@ -78,6 +120,11 @@ export function initLogger(config: LoggerConfig, destination?: DestinationStream
 		},
 	};
 
-	const logger = pino(options, targetDestination);
+	if (!destination) {
+		options.transport = buildLoggerTransport(config);
+	}
+
+	const logger = destination ? pino(options, destination) : pino(options);
+
 	return logger;
 }

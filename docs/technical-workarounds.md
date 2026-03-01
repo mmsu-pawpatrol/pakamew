@@ -2,7 +2,7 @@
 
 This document centralizes temporary or implementation-specific workarounds used in the codebase.
 
-## Vite Config Loader For Shared TS Source Imports
+## [2026/03/01] Vite config loader fails for shared TS source imports
 
 ### Context
 
@@ -38,7 +38,7 @@ Re-evaluate this workaround if:
 - Vite/Node resolver behavior changes to reliably support this pattern, or
 - the project adopts a different shared package distribution strategy (for example, prebuilt JS artifacts).
 
-## createGetEnv overload disambiguation with explicit schema generic
+## [2026/03/01] createGetEnv overload ambiguity without explicit schema generic
 
 ### Context
 
@@ -76,3 +76,50 @@ Re-evaluate this workaround if:
 
 - the `createGetEnv` API is redesigned to avoid ambiguous generic positions, or
 - newer TypeScript versions improve overload/generic inference in this pattern.
+
+## [2026/03/01] OTel logs in ESM not working via "@opentelemetry/instrumentation-pino"
+
+### Context
+
+`@pakamew/server` runs as ESM (`"type": "module"`) and initializes OpenTelemetry through `packages/app-server/src/lib/instrumentation/otel.ts`.
+
+### Symptom
+
+- App logs are visible in stdout but missing in Loki/Grafana.
+- Collector accepts manual OTLP log payloads, but not app-generated logs.
+
+### Root Cause
+
+`@opentelemetry/instrumentation-pino` log sending/correlation in ESM can be sensitive to import path, module loader behavior, and patch timing. In this runtime path (`vite --configLoader runner` + ESM), pino logs were not reliably bridged to the OpenTelemetry Logs SDK.
+
+Related upstream references:
+
+- <https://github.com/open-telemetry/opentelemetry-js-contrib/issues/1587>
+- <https://github.com/open-telemetry/opentelemetry-js/issues/4553>
+- <https://github.com/pinojs/pino-opentelemetry-transport/issues/172>
+- <https://raw.githubusercontent.com/open-telemetry/opentelemetry-js/main/doc/esm-support.md>
+
+### Current Workaround
+
+- Send logs directly via `pino-opentelemetry-transport` in `packages/app-server/src/lib/instrumentation/logger/core.ts`.
+- Keep pretty logs in dev by using pino transport targets:
+  - `pino-pretty` for console readability,
+  - `pino-opentelemetry-transport` for OTLP logs export.
+- Configure OTLP logs URL explicitly from `OTEL_EXPORTER_OTLP_ENDPOINT` as `<endpoint>/v1/logs`.
+- Do not use NodeSDK log pipeline in app runtime path:
+  - removed `OTLPLogExporter`,
+  - removed `BatchLogRecordProcessor(logExporter)`,
+  - removed `PinoInstrumentation` from `NodeSDK` instrumentations.
+
+### Impact
+
+- Restores log export in current ESM runtime path.
+- Keeps structured stdout logs unchanged for local debugging.
+- Avoids duplicate log export paths (NodeSDK log exporter + pino transport).
+
+### Revisit Conditions
+
+Re-evaluate this workaround if:
+
+- OpenTelemetry instrumentation behavior in ESM becomes stable for this runtime and import path, and
+- we can verify `@opentelemetry/instrumentation-pino` consistently exports app logs in dev/build/prod entrypoints.
