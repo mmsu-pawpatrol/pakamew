@@ -1,6 +1,6 @@
 services:
   lgtm:
-    image: grafana/otel-lgtm:latest
+    image: grafana/otel-lgtm:0.19.1
     container_name: pakamew-lgtm
     restart: unless-stopped
     env_file:

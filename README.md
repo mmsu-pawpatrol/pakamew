@@ -22,6 +22,7 @@ Environment:
 After cloning the repository, run the following commands to initialize the repo.
 
 ```bash
+# ⚠️ project node_modules ≈ 700 MB disk size
 pnpm install		# install project dependencies and prepares git hooks
 ```
 
@@ -35,7 +36,10 @@ cp ./web/.env.example ./web/.env
 Start external dependency services with docker-compose:
 
 ```bash
-docker compose up -d
+# ℹ️ Grafana LGTM for Observability is optional
+# ⚠️ See download/disk sizes
+docker compose up -d postgres	# postgres:17.4 ≈ 100 MB download size / 400 MB disk size
+docker compose up -d lgtm		# grafana/otel-lgtm:0.19.1 ≈ 600 MB download size / 2.0 GB disk size
 ```
 
 Generate Prisma client and apply schema changes to the local database:
