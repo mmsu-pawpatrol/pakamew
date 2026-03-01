@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createGetEnv } from "@pakamew/shared/utils/get-env";
 import z from "zod";
 import { CoreEnvSchema, type CoreEnv } from "./core";
