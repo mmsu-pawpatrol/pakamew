@@ -1,5 +1,5 @@
-import "dotenv/config";
-import { z } from "zod/mini";
+import { createGetEnv } from "@pakamew/shared/utils/get-env";
+import z from "zod";
 import { EnvSchema, type Env } from "./env";
 
 export interface ServerEnv extends Env {
@@ -14,13 +14,13 @@ export interface ServerEnv extends Env {
 }
 
 export const ServerEnvSchema = z.object({
-	NODE_ENV: z._default(z.enum(["development", "test", "production"]), "development"),
-	HOST: z._default(z.string().check(z.minLength(1)), "127.0.0.1"),
-	PORT: z._default(z.coerce.number().check(z.int(), z.minimum(1), z.maximum(65535)), 5173),
+	NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+	HOST: z.string().min(1).default("127.0.0.1"),
+	PORT: z.coerce.number().int().min(1).max(65535).default(5173),
 	...EnvSchema.shape,
 });
 
-type ServerEnvSchemaShape = typeof ServerEnvSchema.shape;
+export type ServerEnvSchemaShape = typeof ServerEnvSchema.shape;
 
 /**
  * Get a slice of the environment variables. Since the backend runs in different environments, this helper function allows only requiring a subset of environment variables at a given time (Development, Testing, CI, Production, etc.).
@@ -29,9 +29,4 @@ type ServerEnvSchemaShape = typeof ServerEnvSchema.shape;
  * @param source - The source of the environment variables.
  * @returns The environment variables for the given slice.
  */
-export function getEnv<const K extends keyof ServerEnv>(
-	slice: (shape: ServerEnvSchemaShape) => Pick<ServerEnvSchemaShape, K>,
-	source: Record<string, unknown> = process.env,
-): Pick<ServerEnv, K> {
-	return z.object(slice(ServerEnvSchema.shape)).parse(source) as Pick<ServerEnv, K>;
-}
+export const getEnv = createGetEnv<ServerEnv, typeof ServerEnvSchema>(ServerEnvSchema);
