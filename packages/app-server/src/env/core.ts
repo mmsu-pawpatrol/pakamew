@@ -21,7 +21,7 @@ export interface CoreEnv {
 }
 
 export const CoreEnvSchema = z.object({
-	NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+	NODE_ENV: z.enum(["development", "test", "production"]),
 
 	DATABASE_URL: z.string().min(1),
 

@@ -2,11 +2,36 @@
 
 This document expands the technologies used in Pakamew.
 
+## Frontend
+
+### Framework & Routing
+
+- **[React](https://react.dev/)** - Component-based UI library for building interactive web interfaces. Pakamew uses React for the web app UI and client-side rendering.
+- **[TanStack Router](https://tanstack.com/router/latest)** - Type-safe router for React applications. Pakamew uses file-based routes, generated route trees, and route-level code splitting for navigation and page composition.
+
+### Build Tooling
+
+- **[Vite](https://vitejs.dev/)** - Fast development server and build tool for modern web apps. Pakamew uses Vite (with Rolldown-backed distribution) for web dev, bundling, and preview builds.
+
+### Styling & Component System
+
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework. Pakamew uses Tailwind v4 for app styling, design tokens, and theme variables.
+- **[shadcn/ui](https://ui.shadcn.com/)** - Component composition approach built on Radix and Tailwind. Pakamew uses shadcn UI conventions and generated styles for reusable frontend components.
+- **[Lucide React](https://lucide.dev/guide/packages/lucide-react)** - Icon library for React. Pakamew uses Lucide icons in frontend components and interface affordances.
+
+### Developer Experience
+
+- **[TanStack Devtools](https://tanstack.com/devtools/latest)** - Embedded debugging tools for TanStack libraries. Pakamew includes router/devtools panels to inspect route state and frontend runtime behavior during development.
+
 ## Backend
 
 ### Runtime
 
 - **[Node.js](https://nodejs.org/)** - JavaScript runtime used to execute backend services and workspace scripts. In Pakamew, the server app and supporting tooling run on Node.
+
+### Build Tooling
+
+- **[Vite](https://vitejs.dev/)** - Fast development server and build tool for modern web apps. Pakamew uses Vite (with Rolldown-backed distribution) for web dev, bundling, and preview builds.
 
 ### API & Contracts
 

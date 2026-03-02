@@ -123,3 +123,51 @@ Re-evaluate this workaround if:
 
 - OpenTelemetry instrumentation behavior in ESM becomes stable for this runtime and import path, and
 - we can verify `@opentelemetry/instrumentation-pino` consistently exports app logs in dev/build/prod entrypoints.
+
+## [2026/03/02] app-web Vite config fails with "\_\_dirname is not defined"
+
+### Context
+
+`@pakamew/web` runs Vite using `--configLoader runner`, which evaluates `packages/app-web/vite.config.ts` through an ESM execution path.
+
+### Symptom
+
+Running `pnpm dev` in `packages/app-web` fails before server startup with errors similar to:
+
+- `failed to load config from packages/app-web/vite.config.ts`
+- `ReferenceError: __dirname is not defined`
+
+### Root Cause
+
+In ESM, `__dirname` is not a built-in global. `packages/app-web/vite.config.ts` used `path.resolve(__dirname, "./src")` for alias resolution, which throws when config is loaded via the ESM runner path.
+
+### Current Workaround
+
+Use an ESM-safe dirname derivation in `packages/app-web/vite.config.ts`:
+
+- import `fileURLToPath` from `node:url`
+- derive `__dirname` from `import.meta.url`
+- keep alias resolution based on that derived directory
+
+Example pattern:
+
+```ts
+import { fileURLToPath } from "node:url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+```
+
+Temporary fallback (if unblocking is urgent): remove `--configLoader runner` from web scripts and run plain `vite` until config is ESM-safe.
+
+### Impact
+
+- Restores `pnpm dev` startup for `@pakamew/web` with current router migration setup.
+- Preserves `--configLoader runner` behavior used elsewhere in the workspace.
+
+### Revisit Conditions
+
+Re-evaluate this workaround if:
+
+- Vite/Node config loading behavior changes such that `__dirname` usage is normalized in this path, or
+- the project migrates to a different config style that no longer depends on dirname-based aliasing.

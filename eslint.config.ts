@@ -7,7 +7,7 @@ import reactX from "eslint-plugin-react-x";
 import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-export default defineConfig(globalIgnores(["node_modules", "dist", "generated"]), {
+export default defineConfig(globalIgnores(["node_modules", "dist", "generated", "*.gen.ts", ".tanstack"]), {
 	files: ["**/*.{ts,tsx}"],
 	extends: [
 		js.configs.recommended,

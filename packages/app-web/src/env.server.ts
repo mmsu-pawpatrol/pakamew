@@ -14,11 +14,14 @@ export interface ServerEnv extends Env {
 }
 
 export const ServerEnvSchema = z.object({
-	NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+	NODE_ENV: z.enum(["development", "test", "production"]),
+
 	HOST: z.string().min(1).default("127.0.0.1"),
+
 	PORT: z.coerce.number().int().min(1).max(65535).default(5173),
+
 	...EnvSchema.shape,
-});
+}) satisfies z.ZodType<ServerEnv>;
 
 export type ServerEnvSchemaShape = typeof ServerEnvSchema.shape;
 

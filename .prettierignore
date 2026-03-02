@@ -7,3 +7,5 @@ generated
 *lock.json
 *lock.yaml
 *lock.yml
+*.gen.ts
+.tanstack
