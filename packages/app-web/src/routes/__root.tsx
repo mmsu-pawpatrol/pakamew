@@ -4,6 +4,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 export const Route = createRootRoute({
 	component: RootComponent,
+	notFoundComponent: NotFoundComponent,
 });
 
 function RootComponent() {
@@ -23,4 +24,8 @@ function RootComponent() {
 			/>
 		</>
 	);
+}
+
+function NotFoundComponent() {
+	return <div>Not Found</div>;
 }

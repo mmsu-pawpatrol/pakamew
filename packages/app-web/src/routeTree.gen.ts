@@ -8,50 +8,101 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91_demoChar93RouteRouteImport } from './routes/[_demo]/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as Char91_demoChar93LivestreamRouteImport } from './routes/[_demo]/livestream'
 
+const Char91_demoChar93RouteRoute = Char91_demoChar93RouteRouteImport.update({
+  id: '/_demo',
+  path: '/_demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => rootRouteImport,
-} as any);
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91_demoChar93LivestreamRoute =
+  Char91_demoChar93LivestreamRouteImport.update({
+    id: '/livestream',
+    path: '/livestream',
+    getParentRoute: () => Char91_demoChar93RouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-	"/": typeof IndexRoute;
+  '/': typeof IndexRoute
+  '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
 }
 export interface FileRoutesByTo {
-	"/": typeof IndexRoute;
+  '/': typeof IndexRoute
+  '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
 }
 export interface FileRoutesById {
-	"__root__": typeof rootRouteImport;
-	"/": typeof IndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
 }
 export interface FileRouteTypes {
-	fileRoutesByFullPath: FileRoutesByFullPath;
-	fullPaths: "/";
-	fileRoutesByTo: FileRoutesByTo;
-	to: "/";
-	id: "__root__" | "/";
-	fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/_demo' | '/_demo/livestream'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/_demo' | '/_demo/livestream'
+  id: '__root__' | '/' | '/_demo' | '/_demo/livestream'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-	IndexRoute: typeof IndexRoute;
+  IndexRoute: typeof IndexRoute
+  Char91_demoChar93RouteRoute: typeof Char91_demoChar93RouteRouteWithChildren
 }
 
-declare module "@tanstack/react-router" {
-	interface FileRoutesByPath {
-		"/": {
-			id: "/";
-			path: "/";
-			fullPath: "/";
-			preLoaderRoute: typeof IndexRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
-	}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_demo': {
+      id: '/_demo'
+      path: '/_demo'
+      fullPath: '/_demo'
+      preLoaderRoute: typeof Char91_demoChar93RouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_demo/livestream': {
+      id: '/_demo/livestream'
+      path: '/livestream'
+      fullPath: '/_demo/livestream'
+      preLoaderRoute: typeof Char91_demoChar93LivestreamRouteImport
+      parentRoute: typeof Char91_demoChar93RouteRoute
+    }
+  }
 }
+
+interface Char91_demoChar93RouteRouteChildren {
+  Char91_demoChar93LivestreamRoute: typeof Char91_demoChar93LivestreamRoute
+}
+
+const Char91_demoChar93RouteRouteChildren: Char91_demoChar93RouteRouteChildren =
+  {
+    Char91_demoChar93LivestreamRoute: Char91_demoChar93LivestreamRoute,
+  }
+
+const Char91_demoChar93RouteRouteWithChildren =
+  Char91_demoChar93RouteRoute._addFileChildren(
+    Char91_demoChar93RouteRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
-	IndexRoute: IndexRoute,
-};
-export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>();
+  IndexRoute: IndexRoute,
+  Char91_demoChar93RouteRoute: Char91_demoChar93RouteRouteWithChildren,
+}
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()

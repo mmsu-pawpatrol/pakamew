@@ -2,6 +2,8 @@
 
 ## Tech Stack
 
+- 🖥️ **Frontend App:** [React](https://react.dev/) + [TanStack Router](https://tanstack.com/router/latest) power the web SPA & routing.
+- 🎨 **Frontend UI:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + support component styling and UI primitives.
 - 🧠 **Backend Runtime:** [Node.js](https://nodejs.org/) + [Hono](https://hono.dev/) powers the server and backend tooling.
 - 🛣️ **API Layer:** [oRPC](https://orpc.unnoq.com/) + [OpenAPI](https://www.openapis.org/) + [Scalar](https://scalar.com/) provide typed APIs and interactive API docs.
 - 🔐 **Authentication:** [Better Auth](https://www.better-auth.com/) handles sessions, anonymous access, admin flows, and API keys.
