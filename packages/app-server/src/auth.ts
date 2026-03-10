@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, anonymous, apiKey, openAPI } from "better-auth/plugins";
 import { getEnv } from "./env";
-import { getPrisma } from "./lib/prisma";
+import { getPrisma } from "./prisma";
 
 const env = getEnv((env) => [env.NODE_ENV]);
 

@@ -54,7 +54,7 @@ const apiUrl = env.VITE_API_URL;
 5. For a new app-web env module, follow the same pattern used by `env.ts`/`env.server.ts`: typed interface + schema + runtime-specific access helper.
 6. Add or update entries in the matching `.env.example` (`packages/app-server/.env.example` or `packages/app-web/.env.example`).
 7. Read env values only through `getEnv(...)` (server/runtime code) or `env` (web client code).
-8. When env behavior depends on observability presets, update `packages/app-server/src/lib/instrumentation/config.ts` and keep collector preset examples aligned.
+8. When env behavior depends on observability presets, update `packages/app-server/src/instrumentation/core/config.ts` and keep collector preset examples aligned.
 
 ### Env Selection Rules
 
@@ -93,11 +93,11 @@ Backend changes should include observability updates by default.
 1. Decide whether you are:
    - adding an instrument/helper to an existing metrics module, or
    - introducing a new metrics module for a new domain.
-2. Pick the closest existing module in `packages/app-server/src/lib/instrumentation/metrics`:
+2. Pick the closest existing module in `packages/app-server/src/instrumentation/core/metrics`:
    - `http.ts` for HTTP middleware metrics,
    - `orpc.ts` for procedure-level RPC metrics,
    - `prisma.ts` for DB query metrics.
-3. If no existing module is a good fit, create `packages/app-server/src/lib/instrumentation/metrics/<domain>.ts` and keep the same conventions:
+3. If no existing module is a good fit, create `packages/app-server/src/instrumentation/core/metrics/<domain>.ts` and keep the same conventions:
    - instruments defined from shared `meter` in `metrics/core.ts`,
    - typed `record...Metrics(...)` and/or `begin...Metrics(...)` helpers,
    - low-cardinality attributes only.
@@ -132,15 +132,22 @@ try {
 
 #### Using Tracing
 
-- OpenTelemetry SDK initialization is centralized in `packages/app-server/src/lib/instrumentation/otel.ts` and loaded by `packages/app-server/src/app.ts`.
+- OpenTelemetry SDK initialization is centralized in `packages/app-server/src/instrumentation/otel.ts` and loaded by `packages/app-server/src/app.ts`.
 - Auto instrumentation already covers common libraries (Hono middleware, oRPC, Prisma, pg). Add manual spans only for domain/business boundaries.
-- Use `withSpan(...)` from `packages/app-server/src/lib/instrumentation/tracer.ts` for most cases. It automatically:
+- Use `withSpan(...)` from `packages/app-server/src/instrumentation/core/tracer.ts` for most cases. It automatically:
   - runs your handler in span context,
   - records exceptions,
   - marks span status as error,
   - ends the span.
 - Set `kind` and stable attributes (`http.method`, `http.route`, `orpc.procedure`, etc.) to keep traces queryable.
 - Use `beginSpan(...)` only when you need manual lifecycle control, and always `end()` spans in `finally`.
+
+### Integration Instrumentation Guidelines
+
+- Put framework-specific wiring in `packages/app-server/src/instrumentation/integrations/<domain>`.
+- Keep integration modules focused on extracting low-cardinality request/procedure metadata, then call shared helpers from `instrumentation/core` for logs, metrics, and tracing.
+- Use request-scoped state for cross-layer handoff (for example, HTTP span-name overrides and oRPC dispatch state), and always clear mutable request state in `finally`.
+- Keep integration tests colocated with the integration module (for example, `packages/app-server/src/instrumentation/integrations/<domain>/*.test.ts`).
 
 Example:
 

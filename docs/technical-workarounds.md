@@ -81,7 +81,7 @@ Re-evaluate this workaround if:
 
 ### Context
 
-`@pakamew/server` runs as ESM (`"type": "module"`) and initializes OpenTelemetry through `packages/app-server/src/lib/instrumentation/otel.ts`.
+`@pakamew/server` runs as ESM (`"type": "module"`) and initializes OpenTelemetry through `packages/app-server/src/instrumentation/otel.ts`.
 
 ### Symptom
 
@@ -101,7 +101,7 @@ Related upstream references:
 
 ### Current Workaround
 
-- Send logs directly via `pino-opentelemetry-transport` in `packages/app-server/src/lib/instrumentation/logger/core.ts`.
+- Send logs directly via `pino-opentelemetry-transport` in `packages/app-server/src/instrumentation/core/logger/core.ts`.
 - Keep pretty logs in dev by using pino transport targets:
   - `pino-pretty` for console readability,
   - `pino-opentelemetry-transport` for OTLP logs export.
