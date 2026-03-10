@@ -1,8 +1,8 @@
 import { serve } from "@hono/node-server";
 import { app } from "./app";
 import { getEnv } from "./env";
-import { getLogger } from "./lib/instrumentation/logger";
-import { getPrisma } from "./lib/prisma";
+import { getLogger } from "./instrumentation/core/logger";
+import { getPrisma } from "./prisma";
 
 const env = getEnv((env) => [env.HOST, env.PORT]);
 const logger = getLogger().child({ scope: "startup" });

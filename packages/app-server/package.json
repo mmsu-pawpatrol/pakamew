@@ -5,14 +5,17 @@
 	"type": "module",
 	"exports": {
 		"./api": {
-			"types": "./src/lib/api.ts"
+			"types": "./src/api.ts"
 		}
 	},
 	"scripts": {
 		"dev": "vite --configLoader runner",
 		"build": "vite build --configLoader runner",
 		"preview": "node --enable-source-maps dist/main.node.js",
-		"prepare": "prisma generate"
+		"prepare": "prisma generate",
+		"dependency-graph:json": "pnpm depcruise src --include-only '^src' --exclude '(^src/.*[.](test|spec)[.](ts|tsx|js|jsx|mts|cts)$)|(^prisma/generated/)|(^\\.\\./app-shared/)' -T json -f .dependency-graph.json",
+		"dependency-graph:svg": "pnpm depcruise src --include-only '^src' --exclude '(^src/.*[.](test|spec)[.](ts|tsx|js|jsx|mts|cts)$)|(^prisma/generated/)|(^\\.\\./app-shared/)' -T archi | dot -Tsvg > .dependency-graph.svg",
+		"dependency-graph:svg:detail": "pnpm depcruise src --include-only '^src' --exclude '(^src/.*[.](test|spec)[.](ts|tsx|js|jsx|mts|cts)$)|(^prisma/generated/)|(^\\.\\./app-shared/)' -T dot -S 3 | dot -Tsvg > .dependency-graph.detail.svg"
 	},
 	"dependencies": {
 		"@hono/node-server": "^1.19.10",
