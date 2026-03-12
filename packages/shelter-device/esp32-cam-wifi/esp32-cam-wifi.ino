@@ -119,11 +119,11 @@ void setup() {
   // Smaller frames = higher FPS and less lag over the internet.
   if(psramFound()){
     config.frame_size = FRAMESIZE_QVGA;
-    config.jpeg_quality = 15; // 0-63 lower number means higher quality
+    config.jpeg_quality = 5; // 0-63 lower number means higher quality
     config.fb_count = 2;
   } else {
     config.frame_size = FRAMESIZE_QVGA;
-    config.jpeg_quality = 15;
+    config.jpeg_quality = 5;
     config.fb_count = 1;
   }
 
