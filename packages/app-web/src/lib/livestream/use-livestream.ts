@@ -13,7 +13,12 @@ export interface UseLivestreamResult {
 	setUrl: (sourceUrl: string) => void;
 }
 
-export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResult {
+export interface UseLivestreamOptions {
+	enabled?: boolean;
+}
+
+export function useLivestream(url = env.VITE_LIVESTREAM_URL, options: UseLivestreamOptions = {}): UseLivestreamResult {
+	const enabled = options.enabled ?? true;
 	const [state, setState] = useState(() => createInitialLivestreamState(url));
 	const stateRef = useRef(state);
 	const dispatchRef = useRef<(event: LivestreamEvent) => void>(() => undefined);
@@ -51,6 +56,10 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 	}, [dispatch]);
 
 	useEffect(() => {
+		if (!enabled) {
+			return;
+		}
+
 		transportRef.current = createLivestreamTransport((event) => {
 			dispatchRef.current(event);
 		});
@@ -59,9 +68,13 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 			transportRef.current?.dispose(stateRef.current.frames);
 			transportRef.current = null;
 		};
-	}, []);
+	}, [enabled]);
 
 	useEffect(() => {
+		if (!enabled) {
+			return;
+		}
+
 		const intervalId = window.setInterval(() => {
 			if (stateRef.current.status !== "live" || !lastFrameAtRef.current) {
 				return;
@@ -79,7 +92,7 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 		return () => {
 			window.clearInterval(intervalId);
 		};
-	}, []);
+	}, [enabled]);
 
 	const retry = useCallback(() => {
 		dispatchRef.current({ type: "retry-requested" });
@@ -90,8 +103,12 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 	}, []);
 
 	useEffect(() => {
+		if (!enabled) {
+			return;
+		}
+
 		setUrl(url);
-	}, [setUrl, url]);
+	}, [enabled, setUrl, url]);
 
 	return {
 		state,
