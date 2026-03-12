@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldGroup, FieldLabel, FieldTitle } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { HandHeartIcon } from "lucide-react";
 import { useMemo, useState, type ChangeEvent } from "react";
 
@@ -25,6 +25,10 @@ function formatPeso(amount: number) {
 function DonatePage() {
 	const [selectedPreset, setSelectedPreset] = useState<string>("");
 	const [customAmount, setCustomAmount] = useState<string>("");
+	const navigate = useNavigate({ from: Route.fullPath });
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
 
 	const activeAmount = useMemo(() => {
 		if (customAmount.trim() !== "") {
@@ -56,6 +60,18 @@ function DonatePage() {
 		if (nextValue.trim() !== "") {
 			setSelectedPreset("");
 		}
+	}
+
+	function handleDonateClick() {
+		if (!activeAmount) {
+			return;
+		}
+
+		void navigate({ to: "./success" });
+	}
+
+	if (pathname.startsWith("/donate/")) {
+		return <Outlet />;
 	}
 
 	return (
@@ -142,7 +158,7 @@ function DonatePage() {
 					</CardContent>
 
 					<CardFooter className="mt-auto flex-col items-stretch gap-3 border-t px-5 pt-5 pb-10 sm:px-8 sm:pb-8">
-						<Button type="button" size="lg" disabled={!activeAmount} className="w-full">
+						<Button type="button" size="lg" disabled={!activeAmount} className="w-full" onClick={handleDonateClick}>
 							{activeAmount ? `Donate ${formatPeso(activeAmount)}` : "Donate"}
 						</Button>
 						<p className="text-muted-foreground text-center text-xs">

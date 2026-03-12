@@ -19,7 +19,7 @@ function RootComponent() {
 	return (
 		<>
 			{/* Scrollable viewport for the active route content */}
-			<div className={cn("h-dvh overflow-y-auto", !isDemo ? "pb-16 sm:pb-19" : undefined)}>
+			<div className={cn("h-dvh overflow-y-auto", !isDemo ? "pb-16 md:pb-19" : undefined)}>
 				<Outlet />
 			</div>
 
