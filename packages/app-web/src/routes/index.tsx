@@ -87,10 +87,29 @@ function Homepage() {
 						<Badge variant="destructive" className="absolute top-4 left-4">
 							Live
 						</Badge>
+
+						{/* Desktop CTA overlay for stream context and quick action */}
+						<div className="absolute inset-x-0 bottom-0 hidden md:block">
+							<div className="bg-background/70 border-border/50 flex items-center justify-between gap-4 border-t px-6 py-4 backdrop-blur-sm">
+								<div className="flex min-w-0 flex-col gap-1">
+									<p className="font-medium">Shelter Camera Preview</p>
+									<p className="text-muted-foreground text-sm">
+										Open the full stream to monitor activity in real time.
+									</p>
+								</div>
+
+								<Button asChild variant="outline" className="shrink-0">
+									<Link to="/livestream">
+										<PawPrintIcon data-icon="inline-start" />
+										Open Stream
+									</Link>
+								</Button>
+							</div>
+						</div>
 					</AspectRatio>
 
-					{/* Preview context and stream CTA */}
-					<CardFooter className="flex flex-col items-stretch gap-3 border-t px-4 py-4 sm:flex-row sm:justify-between sm:px-6">
+					{/* Mobile preview context and stream CTA */}
+					<CardFooter className="flex flex-col items-stretch gap-3 border-t px-4 py-4 sm:flex-row sm:justify-between sm:px-6 md:hidden">
 						<div className="flex flex-col gap-1">
 							<p className="font-medium">Shelter Camera Preview</p>
 							<p className="text-muted-foreground text-sm">Open the full stream to monitor activity in real time.</p>
