@@ -1,3 +1,4 @@
+import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -63,13 +64,17 @@ function Homepage() {
 						<h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Live Now</h1>
 					</div>
 
-					<Button asChild variant="ghost" size="icon-lg" className="rounded-full p-0">
-						<Link to="/profile" aria-label="Open profile">
-							<Avatar size="lg">
-								<AvatarFallback>PA</AvatarFallback>
-							</Avatar>
-						</Link>
-					</Button>
+					<div className="flex items-center gap-2">
+						<ThemeToggleButton />
+
+						<Button asChild variant="ghost" size="icon-lg" className="rounded-full p-0">
+							<Link to="/profile" aria-label="Open profile">
+								<Avatar size="lg">
+									<AvatarFallback>PA</AvatarFallback>
+								</Avatar>
+							</Link>
+						</Button>
+					</div>
 				</header>
 
 				{/* Livestream preview card */}

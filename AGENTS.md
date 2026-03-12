@@ -4,7 +4,12 @@
 
 Prefer native tooling only if it exists, including but not limited to:
 
-- `tsgo:check` over `tsc:check`
+- `pnpm tsgo:check` over `pnpm tsc:check`
+
+Always run codebase-wide typechecking and file-scoped linting (`pnpm eslint`) after every set of changes made and resolve any errors encountered.
+
+- Typechecking needs to be codebase-wide to prevent type conflict side-effects in untouched parts of the codebase.
+- Linting can be file-scoped and does not need to be codebase-wide (preferred for shorter lint checks)
 
 ## Contributing
 
