@@ -2,8 +2,6 @@ import { LiveBadge, LivestreamFrameShell, LivestreamStatusOverlay } from "@/comp
 import { env } from "@/env";
 import { useLivestream } from "./use-livestream";
 
-const DESIGN_TIME = true;
-
 export interface LivestreamPlayerProps {
 	url?: string;
 	alt?: string;
@@ -15,9 +13,9 @@ export function LivestreamPlayer({
 	alt = "Livestream camera feed",
 	className,
 }: LivestreamPlayerProps) {
-	const { state, retry } = useLivestream(url, { enabled: !DESIGN_TIME });
+	const { state, retry } = useLivestream(url, { enabled: !env.VITE_DESIGN_TIME });
 
-	if (DESIGN_TIME) {
+	if (env.VITE_DESIGN_TIME) {
 		return (
 			<div className="relative h-full w-full">
 				<LivestreamFrameShell frameUrl="/mr-fresh.jpg" alt={alt} className={className}>
