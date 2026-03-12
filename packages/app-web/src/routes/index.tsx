@@ -61,7 +61,7 @@ function Homepage() {
 				<header className="flex items-center justify-between gap-4">
 					<div className="flex flex-col gap-1">
 						<p className="text-muted-foreground text-sm">Live Shelter Feed</p>
-						<h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Live Now</h1>
+						<h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">MMSU CCIS - Station</h1>
 					</div>
 
 					<div className="flex items-center gap-2">

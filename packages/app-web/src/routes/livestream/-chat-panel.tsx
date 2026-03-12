@@ -52,7 +52,7 @@ export function ChatPanel() {
 			</div> */}
 
 			<ScrollArea className="min-h-0 flex-1">
-				<div className="space-y-4 px-4 py-4">
+				<div className="flex flex-col gap-4 px-4 py-4">
 					{CHAT_MESSAGES.map((chat) => (
 						<div key={chat.id} className="flex items-start gap-3">
 							<Avatar size="sm">
@@ -70,7 +70,7 @@ export function ChatPanel() {
 				</div>
 			</ScrollArea>
 
-			<div className="bg-card sticky bottom-0 border-t px-4 pt-3 pb-10 lg:pb-3">
+			<div className="bg-card shrink-0 border-t px-4 pt-3 pb-10 lg:pb-3">
 				<form className="flex items-end gap-2" onSubmit={handleSubmit}>
 					<div className="relative flex-1">
 						<Textarea
