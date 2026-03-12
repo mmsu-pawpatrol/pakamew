@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Webcam Test Publisher</title>
+	</head>
+
+	<body>
+		<h1>Webcam Test Publisher</h1>
+		<p id="status">Idle</p>
+		<button id="start" type="button">Start</button>
+		<button id="stop" type="button">Stop</button>
+		<video id="preview" autoplay muted playsinline width="320" height="240"></video>
+		<canvas id="capture" hidden></canvas>
+
+		<script>
+			const statusEl = document.getElementById("status");
+			const startBtn = document.getElementById("start");
+			const stopBtn = document.getElementById("stop");
+			const video = document.getElementById("preview");
+			const canvas = document.getElementById("capture");
+			const ctx = canvas.getContext("2d");
+
+			const FRAME_WIDTH = 320;
+			const FRAME_HEIGHT = 240;
+			const TARGET_FPS = 30;
+			const JPEG_QUALITY = 0.6;
+
+			let stream = null;
+			let socket = null;
+			let timer = null;
+			let statsTimer = null;
+			let frameInFlight = false;
+			let sentFrames = 0;
+			let sentBytes = 0;
+			let totalEncodeMs = 0;
+			let cameraSettingsText = "unknown";
+
+			function setStatus(message) {
+				statusEl.textContent = message;
+			}
+
+			function getSocketUrl(pathname) {
+				const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+				return `${protocol}://${window.location.host}${pathname}`;
+			}
+
+			function resetStats() {
+				sentFrames = 0;
+				sentBytes = 0;
+				totalEncodeMs = 0;
+			}
+
+			function updateStatsStatus() {
+				if (!socket || socket.readyState !== WebSocket.OPEN) {
+					return;
+				}
+
+				if (sentFrames === 0) {
+					setStatus(`Connected. Waiting frames... camera ${cameraSettingsText}`);
+					return;
+				}
+
+				const avgEncodeMs = totalEncodeMs / sentFrames;
+				const avgKbPerFrame = sentBytes / sentFrames / 1024;
+				setStatus(
+					`Streaming ${sentFrames} FPS | encode ${avgEncodeMs.toFixed(1)}ms | ${avgKbPerFrame.toFixed(1)}KB/frame | camera ${cameraSettingsText} -> ${FRAME_WIDTH}x${FRAME_HEIGHT}`,
+				);
+				resetStats();
+			}
+
+			function stopStream() {
+				if (timer !== null) {
+					clearInterval(timer);
+					timer = null;
+				}
+				if (statsTimer !== null) {
+					clearInterval(statsTimer);
+					statsTimer = null;
+				}
+
+				if (socket) {
+					socket.close();
+					socket = null;
+				}
+
+				if (stream) {
+					stream.getTracks().forEach((track) => track.stop());
+					stream = null;
+				}
+
+				video.srcObject = null;
+				cameraSettingsText = "unknown";
+				resetStats();
+				setStatus("Stopped");
+			}
+
+			function sendFrame() {
+				if (!stream || !socket || socket.readyState !== WebSocket.OPEN || frameInFlight) {
+					return;
+				}
+				if (!video.videoWidth || !video.videoHeight) return;
+
+				frameInFlight = true;
+				const encodeStartMs = performance.now();
+				ctx.drawImage(video, 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+
+				canvas.toBlob(
+					(blob) => {
+						try {
+							if (!blob || !socket || socket.readyState !== WebSocket.OPEN) return;
+							socket.send(blob);
+							sentFrames += 1;
+							sentBytes += blob.size;
+							totalEncodeMs += performance.now() - encodeStartMs;
+						} catch (error) {
+							setStatus(`Frame send failed: ${error instanceof Error ? error.message : String(error)}`);
+						} finally {
+							frameInFlight = false;
+						}
+					},
+					"image/jpeg",
+					JPEG_QUALITY,
+				);
+			}
+
+			async function startStream() {
+				if (timer !== null) {
+					setStatus("Already running");
+					return;
+				}
+
+				try {
+					setStatus("Requesting webcam permission...");
+					stream = await navigator.mediaDevices.getUserMedia({
+						video: {
+							width: { ideal: FRAME_WIDTH, max: FRAME_WIDTH },
+							height: { ideal: FRAME_HEIGHT, max: FRAME_HEIGHT },
+							frameRate: { ideal: TARGET_FPS, max: TARGET_FPS },
+						},
+						audio: false,
+					});
+					video.srcObject = stream;
+					await video.play();
+					canvas.width = FRAME_WIDTH;
+					canvas.height = FRAME_HEIGHT;
+
+					const [track] = stream.getVideoTracks();
+					if (track) {
+						const settings = track.getSettings();
+						cameraSettingsText = `${settings.width ?? "?"}x${settings.height ?? "?"}@${Math.round(settings.frameRate ?? 0) || "?"}fps`;
+					}
+
+					socket = new WebSocket(getSocketUrl("/esp32-stream"));
+
+					socket.addEventListener("open", () => {
+						setStatus("Connected. Starting stream...");
+						resetStats();
+						timer = window.setInterval(sendFrame, Math.floor(1000 / TARGET_FPS));
+						statsTimer = window.setInterval(updateStatsStatus, 1000);
+					});
+
+					socket.addEventListener("close", () => {
+						if (timer !== null) {
+							clearInterval(timer);
+							timer = null;
+						}
+						if (statsTimer !== null) {
+							clearInterval(statsTimer);
+							statsTimer = null;
+						}
+						setStatus("Socket closed");
+					});
+
+					socket.addEventListener("error", () => {
+						setStatus("Socket error");
+					});
+				} catch (error) {
+					setStatus(`Start failed: ${error instanceof Error ? error.message : String(error)}`);
+					stopStream();
+				}
+			}
+
+			startBtn.addEventListener("click", startStream);
+			stopBtn.addEventListener("click", stopStream);
+			window.addEventListener("beforeunload", stopStream);
+		</script>
+	</body>
+</html>

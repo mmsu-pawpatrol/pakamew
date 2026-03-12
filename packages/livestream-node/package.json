@@ -5,8 +5,9 @@
 	"type": "commonjs",
 	"scripts": {
 		"start:wifi": "node server-wifi.js",
-		"start:wifi:ome": "node -e \"process.env.ENABLE_OME_FORWARD='true'; require('./server-wifi.js')\"",
-		"start:wired": "node server-wired.js"
+		"start:wired": "node server-wired.js",
+		"start:webcam-test": "node server-webcam-test.js",
+		"start:wifi:ome": "node -e \"process.env.ENABLE_OME_FORWARD='true'; require('./server-wifi.js')\""
 	},
 	"dependencies": {
 		"@serialport/parser-delimiter": "^13.0.0",

@@ -9,10 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as DonateRouteImport } from './routes/donate'
 import { Route as Char91_demoChar93RouteRouteImport } from './routes/[_demo]/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LivestreamIndexRouteImport } from './routes/livestream/index'
+import { Route as DonateSuccessRouteImport } from './routes/donate.success'
 import { Route as Char91_demoChar93LivestreamRouteImport } from './routes/[_demo]/livestream'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DonateRoute = DonateRouteImport.update({
+  id: '/donate',
+  path: '/donate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91_demoChar93RouteRoute = Char91_demoChar93RouteRouteImport.update({
   id: '/_demo',
   path: '/_demo',
@@ -22,6 +36,16 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LivestreamIndexRoute = LivestreamIndexRouteImport.update({
+  id: '/livestream/',
+  path: '/livestream/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DonateSuccessRoute = DonateSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => DonateRoute,
 } as any)
 const Char91_demoChar93LivestreamRoute =
   Char91_demoChar93LivestreamRouteImport.update({
@@ -33,34 +57,85 @@ const Char91_demoChar93LivestreamRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/donate': typeof DonateRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
+  '/donate/success': typeof DonateSuccessRoute
+  '/livestream/': typeof LivestreamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/donate': typeof DonateRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
+  '/donate/success': typeof DonateSuccessRoute
+  '/livestream': typeof LivestreamIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
+  '/donate': typeof DonateRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
+  '/donate/success': typeof DonateSuccessRoute
+  '/livestream/': typeof LivestreamIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/_demo' | '/_demo/livestream'
+  fullPaths:
+    | '/'
+    | '/_demo'
+    | '/donate'
+    | '/profile'
+    | '/_demo/livestream'
+    | '/donate/success'
+    | '/livestream/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/_demo' | '/_demo/livestream'
-  id: '__root__' | '/' | '/_demo' | '/_demo/livestream'
+  to:
+    | '/'
+    | '/_demo'
+    | '/donate'
+    | '/profile'
+    | '/_demo/livestream'
+    | '/donate/success'
+    | '/livestream'
+  id:
+    | '__root__'
+    | '/'
+    | '/_demo'
+    | '/donate'
+    | '/profile'
+    | '/_demo/livestream'
+    | '/donate/success'
+    | '/livestream/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   Char91_demoChar93RouteRoute: typeof Char91_demoChar93RouteRouteWithChildren
+  DonateRoute: typeof DonateRouteWithChildren
+  ProfileRoute: typeof ProfileRoute
+  LivestreamIndexRoute: typeof LivestreamIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donate': {
+      id: '/donate'
+      path: '/donate'
+      fullPath: '/donate'
+      preLoaderRoute: typeof DonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_demo': {
       id: '/_demo'
       path: '/_demo'
@@ -74,6 +149,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/livestream/': {
+      id: '/livestream/'
+      path: '/livestream'
+      fullPath: '/livestream/'
+      preLoaderRoute: typeof LivestreamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donate/success': {
+      id: '/donate/success'
+      path: '/success'
+      fullPath: '/donate/success'
+      preLoaderRoute: typeof DonateSuccessRouteImport
+      parentRoute: typeof DonateRoute
     }
     '/_demo/livestream': {
       id: '/_demo/livestream'
@@ -99,9 +188,23 @@ const Char91_demoChar93RouteRouteWithChildren =
     Char91_demoChar93RouteRouteChildren,
   )
 
+interface DonateRouteChildren {
+  DonateSuccessRoute: typeof DonateSuccessRoute
+}
+
+const DonateRouteChildren: DonateRouteChildren = {
+  DonateSuccessRoute: DonateSuccessRoute,
+}
+
+const DonateRouteWithChildren =
+  DonateRoute._addFileChildren(DonateRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   Char91_demoChar93RouteRoute: Char91_demoChar93RouteRouteWithChildren,
+  DonateRoute: DonateRouteWithChildren,
+  ProfileRoute: ProfileRoute,
+  LivestreamIndexRoute: LivestreamIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,23 +1,32 @@
-import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
 import ReactDOM from "react-dom/client";
-import { routeTree } from "./routeTree.gen";
+import { DirectionProvider } from "./components/ui/direction";
+import { Toaster } from "./components/ui/sonner";
 import "./index.css";
+import { ORPCProvider } from "./lib/orpc-provider";
+import { QueryProvider } from "./lib/query-provider";
+import { getRouter } from "./router";
 
-const router = createRouter({
-	routeTree,
-	defaultPreload: "intent",
-	scrollRestoration: true,
-});
+function main() {
+	const router = getRouter();
 
-declare module "@tanstack/react-router" {
-	interface Register {
-		router: typeof router;
-	}
+	const element = document.getElementById("app");
+	if (!element) return;
+
+	const root = ReactDOM.createRoot(element);
+	root.render(
+		<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+			<DirectionProvider dir="ltr">
+				<ORPCProvider>
+					<QueryProvider>
+						<RouterProvider router={router} />
+						<Toaster />
+					</QueryProvider>
+				</ORPCProvider>
+			</DirectionProvider>
+		</ThemeProvider>,
+	);
 }
 
-const rootElement = document.getElementById("app")!;
-
-if (!rootElement.innerHTML) {
-	const root = ReactDOM.createRoot(rootElement);
-	root.render(<RouterProvider router={router} />);
-}
+void main();
