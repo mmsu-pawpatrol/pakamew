@@ -1,4 +1,22 @@
 services:
+  ovenmediaengine:
+    image: airensoft/ovenmediaengine:v0.20.0
+    container_name: pakamew-ovenmediaengine
+    restart: unless-stopped
+    environment:
+      OME_HOST_IP: ${OME_HOST_IP:-127.0.0.1}
+    ports:
+      - "1935:1935" # RTMP ingest
+      - "9999:9999/udp" # SRT ingest
+      - "9000:9000" # Origin server (OVT)
+      - "3333:3333" # LLHLS/WebRTC signaling
+      - "3478:3478" # WebRTC TCP relay (TURN)
+      - "10000-10009:10000-10009/udp" # WebRTC ICE candidates
+    volumes:
+      - pakamew-ome-origin-conf:/opt/ovenmediaengine/bin/origin_conf
+      - pakamew-ome-edge-conf:/opt/ovenmediaengine/bin/edge_conf
+    # Oven Player Demo: docker run -d -p 8090:80 airensoft/ovenplayerdemo:latest
+
   lgtm:
     image: grafana/otel-lgtm:0.19.1
     container_name: pakamew-lgtm
@@ -33,5 +51,7 @@ services:
       start_period: 5s
 
 volumes:
+  pakamew-ome-origin-conf:
+  pakamew-ome-edge-conf:
   pakamew-postgres-data:
   pakamew-lgtm-data:

@@ -5,6 +5,7 @@
 	"type": "commonjs",
 	"scripts": {
 		"start:wifi": "node server-wifi.js",
+		"start:wifi:ome": "node -e \"process.env.ENABLE_OME_FORWARD='true'; require('./server-wifi.js')\"",
 		"start:wired": "node server-wired.js"
 	},
 	"dependencies": {
