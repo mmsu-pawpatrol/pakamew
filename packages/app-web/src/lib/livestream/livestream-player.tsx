@@ -28,8 +28,18 @@ export function LivestreamPlayer({
 					</div>
 				) : (
 					<LivestreamStatusOverlay
-						mode={overlayMode === "connecting" ? "connecting" : overlayMode === "error" ? "error" : "offline"}
-						onRetry={overlayMode === "offline" || overlayMode === "error" ? retry : undefined}
+						mode={
+							overlayMode === "connecting"
+								? "connecting"
+								: overlayMode === "connected"
+									? "connected"
+									: overlayMode === "error"
+										? "error"
+										: "offline"
+						}
+						onRetry={
+							overlayMode === "offline" || overlayMode === "error" || overlayMode === "connected" ? retry : undefined
+						}
 					/>
 				)}
 			</LivestreamFrameShell>

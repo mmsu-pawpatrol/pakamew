@@ -47,10 +47,17 @@ const handlers = {
 			[{ type: "disconnect" }, { type: "connect", url: state.url }],
 		);
 	},
+	"frame-stalled": (state) => {
+		if (state.status !== "live") return withState(state);
+		return withState({
+			...state,
+			status: "connected",
+		});
+	},
 	"socket-opened": (state) => {
 		return withState({
 			...state,
-			status: "live",
+			status: "connected",
 		});
 	},
 	"socket-errored": (state) => {

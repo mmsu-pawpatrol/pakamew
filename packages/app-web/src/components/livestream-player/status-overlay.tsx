@@ -3,7 +3,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Spinner } from "@/components/ui/spinner";
 import { RefreshCwIcon } from "lucide-react";
 
-export type LivestreamStatusOverlayMode = "connecting" | "offline" | "error" | "paused";
+export type LivestreamStatusOverlayMode = "connecting" | "connected" | "offline" | "error" | "paused";
 
 export interface LivestreamStatusOverlayProps {
 	mode: LivestreamStatusOverlayMode;
@@ -14,6 +14,10 @@ const OVERLAY_COPY: Record<LivestreamStatusOverlayMode, { title: string; descrip
 	connecting: {
 		title: "Connecting to live feed...",
 		description: "Preparing livestream session.",
+	},
+	connected: {
+		title: "Connected to livestream server",
+		description: "Waiting for camera feed ...",
 	},
 	offline: {
 		title: "Live feed unavailable",
@@ -43,7 +47,7 @@ export function LivestreamStatusOverlay({ mode, onRetry }: LivestreamStatusOverl
 			/>
 			<Empty className="relative h-full rounded-none border-0 bg-black/80 p-6 backdrop-blur-xs">
 				<EmptyHeader>
-					{mode === "connecting" ? (
+					{mode === "connecting" || mode === "connected" ? (
 						<EmptyMedia
 							variant="icon"
 							className="border-white/15 bg-white/10 text-white [&_svg:not([class*='size-'])]:size-5">

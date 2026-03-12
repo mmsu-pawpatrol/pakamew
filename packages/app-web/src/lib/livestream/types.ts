@@ -1,4 +1,4 @@
-export type LivestreamConnectionStatus = "connecting" | "live" | "offline" | "error";
+export type LivestreamConnectionStatus = "connecting" | "connected" | "live" | "offline" | "error";
 
 export type LivestreamFrameByUrl = Record<string, string>;
 
@@ -28,6 +28,9 @@ export type LivestreamEvent =
 	  }
 	| {
 			type: "retry-requested";
+	  }
+	| {
+			type: "frame-stalled";
 	  }
 	| {
 			type: "socket-opened";

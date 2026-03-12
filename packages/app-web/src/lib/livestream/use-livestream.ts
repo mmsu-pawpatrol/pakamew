@@ -26,7 +26,7 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 
 	const dispatch = useCallback(
 		(event: LivestreamEvent) => {
-			if (event.type === "socket-opened" || event.type === "frame-ready") {
+			if (event.type === "frame-ready") {
 				lastFrameAtRef.current = Date.now();
 			}
 
@@ -73,7 +73,7 @@ export function useLivestream(url = env.VITE_LIVESTREAM_URL): UseLivestreamResul
 			}
 
 			lastFrameAtRef.current = null;
-			dispatchRef.current({ type: "socket-closed" });
+			dispatchRef.current({ type: "frame-stalled" });
 		}, LIVESTREAM_STALL_POLL_INTERVAL_MS);
 
 		return () => {
