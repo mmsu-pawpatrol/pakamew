@@ -2,6 +2,45 @@
 
 This document centralizes temporary or implementation-specific workarounds used in the codebase.
 
+## [2026/04/16] Better Auth React client export needs a named local type
+
+### Context
+
+`packages/app-web/src/lib/auth.ts` exports the configured Better Auth React client used by the web app.
+
+### Symptom
+
+`pnpm tsgo:check` can fail with errors similar to:
+
+- `TS2742: The inferred type ... cannot be named without a reference to .../better-auth/dist/client/path-to-object.d.mts`
+- `TS4058` or `TS4023` mentioning non-portable exported types such as `RevalidateOptions`
+
+### Root Cause
+
+`createAuthClient(...)` returns a deeply inferred type that threads through Better Auth's internal declaration graph. When that inferred return type is exported directly, TypeScript tries to emit a public type name that depends on package-internal `.d.mts` paths instead of a stable public surface.
+
+### Current Workaround
+
+In `packages/app-web/src/lib/auth.ts`, define a local named alias for the configured client type and export the client with that alias:
+
+- `type AppAuthClient = ReturnType<typeof createAuthClient<...>>`
+- `export const auth: AppAuthClient = createAuthClient(...)`
+
+This keeps the file short while preventing declaration portability errors.
+
+### Impact
+
+- Preserves full client inference for the configured auth plugins.
+- Avoids leaking Better Auth internal declaration paths into this module's exported type surface.
+- Changes types only; runtime behavior is unchanged.
+
+### Revisit Conditions
+
+Re-evaluate this workaround if:
+
+- Better Auth exposes a stable public client type for configured React clients, or
+- newer TypeScript / Better Auth releases stop emitting non-portable declaration references for this pattern.
+
 ## [2026/03/01] Vite config loader fails for shared TS source imports
 
 ### Context
