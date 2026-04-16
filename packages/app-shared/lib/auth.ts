@@ -1,6 +1,7 @@
+import { apiKeyClient } from "@better-auth/api-key/client";
 import type { BetterAuthClientOptions } from "better-auth";
-import { adminClient, anonymousClient, apiKeyClient } from "better-auth/client/plugins";
+import { adminClient, anonymousClient } from "better-auth/client/plugins";
 
-export const authOptions: BetterAuthClientOptions = {
+export const authOptions = {
 	plugins: [adminClient(), anonymousClient(), apiKeyClient()],
-};
+} satisfies BetterAuthClientOptions;

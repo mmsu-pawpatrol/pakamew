@@ -1,5 +1,5 @@
-import type { Auth } from "better-auth/types";
 import type { MiddlewareHandler } from "hono";
+import type { AppAuth } from "../../../auth";
 import { matchAuthRouteTemplate } from "../better-auth/route-template";
 import { HttpInstrumentation } from "../http";
 
@@ -14,7 +14,7 @@ export const BetterAuthInstrumentation = {
 	 * @param deps.auth - Better Auth instance used to resolve endpoint templates.
 	 * @returns A middleware that sets a normalized auth span name template.
 	 */
-	middleware(deps: { auth: Auth }): MiddlewareHandler {
+	middleware(deps: { auth: AppAuth }): MiddlewareHandler {
 		return async (c, next) => {
 			const pathname = new URL(c.req.url).pathname;
 			const match = matchAuthRouteTemplate(deps.auth, c.req.method, pathname);

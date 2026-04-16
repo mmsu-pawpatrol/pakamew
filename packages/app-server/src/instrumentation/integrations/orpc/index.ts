@@ -61,7 +61,7 @@ export const OrpcInstrumentation: OrpcInstrumentationApi = {
 			const method = c.req.method;
 			const fallbackRouteMetadata = createOrpcFallbackRouteMetadata(pathname);
 			const requestSizeBytes = parseContentLength(c.req.header("content-length"));
-			let statusCode = 500;
+			let statusCode: number | undefined;
 			let responseSizeBytes: number | undefined;
 
 			try {
@@ -88,6 +88,8 @@ export const OrpcInstrumentation: OrpcInstrumentationApi = {
 				const procedure = routeMetadata?.procedure ?? fallbackRouteMetadata.procedure;
 				const dispatchResult = instrumentationState?.dispatchResult;
 				const dispatchError = instrumentationState?.dispatchError;
+
+				statusCode ??= c.res.status >= 400 ? c.res.status : 500;
 
 				if (dispatchResult?.matched) {
 					HttpInstrumentation.setSpanName(c.req.raw, { method, template: route });

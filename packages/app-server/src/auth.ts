@@ -1,6 +1,7 @@
+import { apiKey } from "@better-auth/api-key";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin, anonymous, apiKey, openAPI } from "better-auth/plugins";
+import { admin, anonymous, openAPI } from "better-auth/plugins";
 import { getEnv } from "./env";
 import { getPrisma } from "./prisma";
 
@@ -20,3 +21,5 @@ export const auth = betterAuth({
 		debugLogs: env.NODE_ENV == "development",
 	}),
 });
+
+export type AppAuth = typeof auth;
