@@ -1,20 +1,25 @@
-# Pakamew
+<h1 align="center">
+  Pakamew
+</h1>
 
-## Tech Stack
+<table align="center">
+  <tr>
+    <td width="480" align="center">
+      <img width="480" alt="Mr. Fresh" src="./packages/app-web/public/mr-fresh.jpg" /><br>
+      <sub> <i> Mr. Fresh, the orange "side-eye cat" popularized by Hello-Street-Cat feeder livestream clips, went viral for staring down the camera until fresh food dropped. </i> </sub>
+    </td>
+  </tr>
+</table>
 
-- 🖥️ **Frontend App:** [React](https://react.dev/) + [TanStack Router](https://tanstack.com/router/latest) power the web SPA and routing.
-- 🎨 **Frontend UI:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) support component styling and UI primitives.
-- 🧠 **Backend Runtime:** [Node.js](https://nodejs.org/) + [Hono](https://hono.dev/) power the server and backend tooling.
-- 🛣️ **API Layer:** [oRPC](https://orpc.unnoq.com/) + [OpenAPI](https://www.openapis.org/) + [Scalar](https://scalar.com/) provide typed APIs and interactive API docs.
-- 🔐 **Authentication:** [Better Auth](https://www.better-auth.com/) handles sessions, anonymous access, admin flows, and API keys.
-- 🗄️ **Database:** [Prisma](https://www.prisma.io/) + [PostgreSQL](https://www.postgresql.org/) power typed data access and relational persistence.
-- 📊 **Observability:** [OpenTelemetry](https://opentelemetry.io/) + [OpenObserve](https://openobserve.ai/) + [Grafana LGTM](https://grafana.com/docs/opentelemetry/collector/opentelemetry-collector-lgtm/) cover lightweight and full local observability workflows.
-- 📡 **Livestream Node:** [Express](https://expressjs.com/) + [ws](https://github.com/websockets/ws) + [SerialPort](https://serialport.io/) bridge shelter camera streams over network and serial channels.
-- 🐾 **Shelter Device:** [esp32-camera](https://github.com/espressif/esp32-camera) + [WiFi (Arduino ESP32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi) + [Serial (Arduino)](https://docs.arduino.cc/language-reference/en/functions/communication/serial/) run shelter streaming.
+## Pitch
 
-Detailed breakdown: [docs/technology.md](./docs/technology.md)
+People on campus often want to help stray animals, but the support system is usually fragmented. Feeding depends on individual volunteer effort, donations can be difficult to coordinate, and supporters rarely get a clear view of what happens after they give. The result is a trust problem as much as an operational one.
+
+Pakamew turns that informal effort into a real campus-wide platform for animal welfare transparency. It combines donations, livestream visibility, feeder-connected actions, and admin tools for monitoring, records, and oversight in one system. Supporters can contribute with clear expectations on where donations go. Organizers get the infrastructure to run that program reliably. The result is a more transparent, accountable, and sustainable way to care for campus strays.
 
 ## Development
+
+View [docs/technology.md](./docs/technology.md) for a detailed breakdown of the individual components of the system.
 
 Environment:
 
@@ -24,7 +29,6 @@ Environment:
 After cloning the repository, run the following command to initialize the repo.
 
 ```bash
-# ⚠️ project node_modules ≈ 700 MB disk size
 pnpm install
 ```
 
@@ -42,19 +46,19 @@ Start dependency services from the `docker/` compose files:
 # Base app infrastructure
 docker compose -f docker/docker-compose.app.yml up -d
 
-# E2E livestream workflow
+# E2E livestream
 docker compose \
   -f docker/docker-compose.app.yml \
   -f docker/docker-compose.ovenmediaengine.yml \
   up -d
 
-# Lightweight observability workflow
+# Lightweight observability
 docker compose \
   -f docker/docker-compose.app.yml \
   -f docker/docker-compose.otel-openobserve.yml \
   up -d
 
-# Full local observability workflow
+# Full local observability
 docker compose \
   -f docker/docker-compose.app.yml \
   -f docker/docker-compose.otel-lgtm.yml \
