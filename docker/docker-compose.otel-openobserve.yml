@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     environment:
       ZO_DATA_DIR: /data
-      ZO_ROOT_USER_EMAIL: root@example.com
-      ZO_ROOT_USER_PASSWORD: Complexpass#123
+      ZO_ROOT_USER_EMAIL: pakamew@example.com
+      ZO_ROOT_USER_PASSWORD: pakamew
     ports:
       - "5080:5080" # OpenObserve UI and ingestion
     volumes:
@@ -22,7 +22,8 @@ services:
       - openobserve
     environment:
       OPENOBSERVE_ENDPOINT: http://openobserve:5080/api/default
-      OPENOBSERVE_AUTH_HEADER: Basic cm9vdEBleGFtcGxlLmNvbTpDb21wbGV4cGFzcyMxMjM=
+      # Base64 of "pakamew@example.com:pakamew"
+      OPENOBSERVE_AUTH_HEADER: Basic cGFrYW1ld0BleGFtcGxlLmNvbTpwYWthbWV3
       OPENOBSERVE_LOGS_STREAM: pakamew-logs
       OPENOBSERVE_METRICS_STREAM: pakamew-metrics
       OPENOBSERVE_TRACES_STREAM: pakamew-traces
