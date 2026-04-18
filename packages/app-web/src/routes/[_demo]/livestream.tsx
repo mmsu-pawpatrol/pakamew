@@ -1,5 +1,5 @@
+import { LivestreamPlayer } from "@/components/livestream-player";
 import { createFileRoute } from "@tanstack/react-router";
-import { LivestreamPlayer } from "../../lib/livestream";
 
 export const Route = createFileRoute("/_demo/livestream")({
 	component: LivestreamPage,

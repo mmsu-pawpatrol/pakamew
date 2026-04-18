@@ -1,22 +1,15 @@
-import type { LivestreamCommand, LivestreamEvent, LivestreamFrameByUrl } from "./types";
+import type { StreamCommand, StreamEvent } from "./types";
 
-interface LivestreamTransportContext {
+interface TransportContext {
 	socketRef: {
 		current: WebSocket | null;
 	};
-	dispatch: (event: LivestreamEvent) => void;
+	dispatch: (event: StreamEvent) => void;
 }
 
-type LivestreamCommandHandlerMap = {
-	[CommandType in LivestreamCommand["type"]]: (
-		context: LivestreamTransportContext,
-		command: Extract<LivestreamCommand, { type: CommandType }>,
-	) => void;
-};
-
-export interface LivestreamTransport {
-	run: (command: LivestreamCommand) => void;
-	dispose: (frameBySourceUrl: LivestreamFrameByUrl) => void;
+interface Transport {
+	run: (command: StreamCommand) => void;
+	dispose: (frameUrl: string | null) => void;
 }
 
 function clearSocketListeners(socket: WebSocket) {
@@ -26,7 +19,7 @@ function clearSocketListeners(socket: WebSocket) {
 	socket.onclose = null;
 }
 
-function closeCurrentSocket(context: LivestreamTransportContext, shouldSilenceSocketEvents = false) {
+function closeCurrentSocket(context: TransportContext, shouldSilenceSocketEvents = false) {
 	const socket = context.socketRef.current;
 
 	if (!socket) return;
@@ -38,76 +31,67 @@ function closeCurrentSocket(context: LivestreamTransportContext, shouldSilenceSo
 	socket.close();
 }
 
-function revokeFrameUrls(frameBySourceUrl: LivestreamFrameByUrl) {
-	for (const frameUrl of Object.values(frameBySourceUrl)) {
+function revokeFrameUrl(frameUrl: string | null) {
+	if (frameUrl) {
 		URL.revokeObjectURL(frameUrl);
 	}
 }
 
-const handlers = {
-	"connect": (context, command) => {
-		closeCurrentSocket(context);
-
-		const sourceUrl = command.url;
-		const socket = new WebSocket(sourceUrl);
-		socket.binaryType = "blob";
-		context.socketRef.current = socket;
-
-		socket.onopen = () => {
-			if (context.socketRef.current !== socket) return;
-			context.dispatch({ type: "socket-opened" });
-		};
-
-		socket.onmessage = (event) => {
-			if (context.socketRef.current !== socket || !(event.data instanceof Blob)) return;
-
-			const frameUrl = URL.createObjectURL(event.data);
-			context.dispatch({
-				type: "frame-ready",
-				sourceUrl,
-				frameUrl,
-			});
-		};
-
-		socket.onerror = () => {
-			if (context.socketRef.current !== socket) return;
-			context.dispatch({ type: "socket-errored" });
-		};
-
-		socket.onclose = () => {
-			if (context.socketRef.current !== socket) return;
-			context.socketRef.current = null;
-			context.dispatch({ type: "socket-closed" });
-		};
-	},
-
-	"disconnect": (context) => {
-		closeCurrentSocket(context);
-	},
-
-	"revoke-frame-url": (_context, command) => {
-		URL.revokeObjectURL(command.frameUrl);
-	},
-} satisfies LivestreamCommandHandlerMap;
-
-export function createLivestreamTransport(dispatch: (event: LivestreamEvent) => void): LivestreamTransport {
-	const context: LivestreamTransportContext = {
+export function createStreamTransport(url: string, dispatch: (event: StreamEvent) => void): Transport {
+	const context: TransportContext = {
 		socketRef: { current: null },
 		dispatch: dispatch,
 	};
 
 	return {
 		run: (command) => {
-			const handler = handlers[command.type] as (
-				context: LivestreamTransportContext,
-				command: LivestreamCommand,
-			) => void;
+			switch (command.type) {
+				case "connect": {
+					closeCurrentSocket(context);
 
-			handler(context, command);
+					const socket = new WebSocket(url);
+					socket.binaryType = "blob";
+					context.socketRef.current = socket;
+
+					socket.onopen = () => {
+						if (context.socketRef.current !== socket) return;
+						context.dispatch({ type: "socket-opened" });
+					};
+
+					socket.onmessage = (event) => {
+						if (context.socketRef.current !== socket || !(event.data instanceof Blob)) return;
+
+						const frameUrl = URL.createObjectURL(event.data);
+						context.dispatch({
+							type: "frame-ready",
+							frameUrl,
+						});
+					};
+
+					socket.onerror = () => {
+						if (context.socketRef.current !== socket) return;
+						context.dispatch({ type: "socket-errored" });
+					};
+
+					socket.onclose = () => {
+						if (context.socketRef.current !== socket) return;
+						context.socketRef.current = null;
+						context.dispatch({ type: "socket-closed" });
+					};
+					return;
+				}
+				case "disconnect":
+					closeCurrentSocket(context);
+					return;
+				case "revoke-frame-url":
+					URL.revokeObjectURL(command.frameUrl);
+					return;
+			}
 		},
-		dispose: (frameBySourceUrl) => {
+
+		dispose: (frameUrl) => {
 			closeCurrentSocket(context, true);
-			revokeFrameUrls(frameBySourceUrl);
+			revokeFrameUrl(frameUrl);
 		},
 	};
 }

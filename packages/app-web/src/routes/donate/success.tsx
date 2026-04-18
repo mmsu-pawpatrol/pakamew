@@ -1,7 +1,7 @@
+import { LivestreamPlayer } from "@/components/livestream-player";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LivestreamPlayer } from "@/lib/livestream";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2Icon, HeartHandshakeIcon, SparklesIcon, VideoIcon } from "lucide-react";
 

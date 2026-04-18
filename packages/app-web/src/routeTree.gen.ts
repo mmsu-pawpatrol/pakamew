@@ -10,11 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as DonateRouteImport } from './routes/donate'
+import { Route as DonateRouteRouteImport } from './routes/donate/route'
 import { Route as Char91_demoChar93RouteRouteImport } from './routes/[_demo]/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LivestreamIndexRouteImport } from './routes/livestream/index'
-import { Route as DonateSuccessRouteImport } from './routes/donate.success'
+import { Route as DonateIndexRouteImport } from './routes/donate/index'
+import { Route as DonateSuccessRouteImport } from './routes/donate/success'
 import { Route as Char91_demoChar93LivestreamRouteImport } from './routes/[_demo]/livestream'
 
 const ProfileRoute = ProfileRouteImport.update({
@@ -22,7 +23,7 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DonateRoute = DonateRouteImport.update({
+const DonateRouteRoute = DonateRouteRouteImport.update({
   id: '/donate',
   path: '/donate',
   getParentRoute: () => rootRouteImport,
@@ -42,10 +43,15 @@ const LivestreamIndexRoute = LivestreamIndexRouteImport.update({
   path: '/livestream/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DonateIndexRoute = DonateIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DonateRouteRoute,
+} as any)
 const DonateSuccessRoute = DonateSuccessRouteImport.update({
   id: '/success',
   path: '/success',
-  getParentRoute: () => DonateRoute,
+  getParentRoute: () => DonateRouteRoute,
 } as any)
 const Char91_demoChar93LivestreamRoute =
   Char91_demoChar93LivestreamRouteImport.update({
@@ -57,29 +63,31 @@ const Char91_demoChar93LivestreamRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
-  '/donate': typeof DonateRouteWithChildren
+  '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
+  '/donate/': typeof DonateIndexRoute
   '/livestream/': typeof LivestreamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
-  '/donate': typeof DonateRouteWithChildren
   '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
+  '/donate': typeof DonateIndexRoute
   '/livestream': typeof LivestreamIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
-  '/donate': typeof DonateRouteWithChildren
+  '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
+  '/donate/': typeof DonateIndexRoute
   '/livestream/': typeof LivestreamIndexRoute
 }
 export interface FileRouteTypes {
@@ -91,15 +99,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/_demo/livestream'
     | '/donate/success'
+    | '/donate/'
     | '/livestream/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/_demo'
-    | '/donate'
     | '/profile'
     | '/_demo/livestream'
     | '/donate/success'
+    | '/donate'
     | '/livestream'
   id:
     | '__root__'
@@ -109,13 +118,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/_demo/livestream'
     | '/donate/success'
+    | '/donate/'
     | '/livestream/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   Char91_demoChar93RouteRoute: typeof Char91_demoChar93RouteRouteWithChildren
-  DonateRoute: typeof DonateRouteWithChildren
+  DonateRouteRoute: typeof DonateRouteRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   LivestreamIndexRoute: typeof LivestreamIndexRoute
 }
@@ -133,7 +143,7 @@ declare module '@tanstack/react-router' {
       id: '/donate'
       path: '/donate'
       fullPath: '/donate'
-      preLoaderRoute: typeof DonateRouteImport
+      preLoaderRoute: typeof DonateRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_demo': {
@@ -157,12 +167,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LivestreamIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/donate/': {
+      id: '/donate/'
+      path: '/'
+      fullPath: '/donate/'
+      preLoaderRoute: typeof DonateIndexRouteImport
+      parentRoute: typeof DonateRouteRoute
+    }
     '/donate/success': {
       id: '/donate/success'
       path: '/success'
       fullPath: '/donate/success'
       preLoaderRoute: typeof DonateSuccessRouteImport
-      parentRoute: typeof DonateRoute
+      parentRoute: typeof DonateRouteRoute
     }
     '/_demo/livestream': {
       id: '/_demo/livestream'
@@ -188,21 +205,24 @@ const Char91_demoChar93RouteRouteWithChildren =
     Char91_demoChar93RouteRouteChildren,
   )
 
-interface DonateRouteChildren {
+interface DonateRouteRouteChildren {
   DonateSuccessRoute: typeof DonateSuccessRoute
+  DonateIndexRoute: typeof DonateIndexRoute
 }
 
-const DonateRouteChildren: DonateRouteChildren = {
+const DonateRouteRouteChildren: DonateRouteRouteChildren = {
   DonateSuccessRoute: DonateSuccessRoute,
+  DonateIndexRoute: DonateIndexRoute,
 }
 
-const DonateRouteWithChildren =
-  DonateRoute._addFileChildren(DonateRouteChildren)
+const DonateRouteRouteWithChildren = DonateRouteRoute._addFileChildren(
+  DonateRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   Char91_demoChar93RouteRoute: Char91_demoChar93RouteRouteWithChildren,
-  DonateRoute: DonateRouteWithChildren,
+  DonateRouteRoute: DonateRouteRouteWithChildren,
   ProfileRoute: ProfileRoute,
   LivestreamIndexRoute: LivestreamIndexRoute,
 }
