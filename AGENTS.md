@@ -1,5 +1,7 @@
 # Agent Instructions
 
+First read [docs/about.md](docs/about.md), this document contains information about the project's background from a product-oriented/business-pov
+
 ## Tooling
 
 Prefer native tooling only if it exists, including but not limited to:

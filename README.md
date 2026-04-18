@@ -12,7 +12,7 @@
 - 📡 **Livestream Node:** [Express](https://expressjs.com/) + [ws](https://github.com/websockets/ws) + [SerialPort](https://serialport.io/) bridge shelter camera streams over network and serial channels.
 - 🐾 **Shelter Device:** [esp32-camera](https://github.com/espressif/esp32-camera) + [WiFi (Arduino ESP32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi) + [Serial (Arduino)](https://docs.arduino.cc/language-reference/en/functions/communication/serial/) run shelter streaming.
 
-Detailed breakdown: [docs/technology-stack.md](./docs/technology-stack.md)
+Detailed breakdown: [docs/technology.md](./docs/technology.md)
 
 ## Development
 
