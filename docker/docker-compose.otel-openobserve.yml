@@ -1,0 +1,34 @@
+services:
+  openobserve:
+    image: o2cr.ai/openobserve/openobserve-enterprise:latest
+    container_name: pakamew-openobserve
+    restart: unless-stopped
+    environment:
+      ZO_DATA_DIR: /data
+      ZO_ROOT_USER_EMAIL: root@example.com
+      ZO_ROOT_USER_PASSWORD: Complexpass#123
+    ports:
+      - "5080:5080" # OpenObserve UI and ingestion
+    volumes:
+      - pakamew-openobserve-data:/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.150.0
+    container_name: pakamew-otel-collector-openobserve
+    restart: unless-stopped
+    depends_on:
+      - openobserve
+    environment:
+      OPENOBSERVE_ENDPOINT: http://openobserve:5080/api/default
+      OPENOBSERVE_AUTH_HEADER: Basic cm9vdEBleGFtcGxlLmNvbTpDb21wbGV4cGFzcyMxMjM=
+      OPENOBSERVE_LOGS_STREAM: pakamew-logs
+      OPENOBSERVE_METRICS_STREAM: pakamew-metrics
+      OPENOBSERVE_TRACES_STREAM: pakamew-traces
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+    volumes:
+      - ./observability/openobserve/otelcol-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+
+volumes:
+  pakamew-openobserve-data:

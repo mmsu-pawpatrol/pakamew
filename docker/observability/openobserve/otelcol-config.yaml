@@ -1,0 +1,48 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /ready
+
+processors:
+  batch:
+
+exporters:
+  otlphttp/openobserve_logs:
+    endpoint: ${env:OPENOBSERVE_ENDPOINT}
+    headers:
+      Authorization: ${env:OPENOBSERVE_AUTH_HEADER}
+      stream-name: ${env:OPENOBSERVE_LOGS_STREAM}
+  otlphttp/openobserve_metrics:
+    endpoint: ${env:OPENOBSERVE_ENDPOINT}
+    headers:
+      Authorization: ${env:OPENOBSERVE_AUTH_HEADER}
+      stream-name: ${env:OPENOBSERVE_METRICS_STREAM}
+  otlphttp/openobserve_traces:
+    endpoint: ${env:OPENOBSERVE_ENDPOINT}
+    headers:
+      Authorization: ${env:OPENOBSERVE_AUTH_HEADER}
+      stream-name: ${env:OPENOBSERVE_TRACES_STREAM}
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/openobserve_traces]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/openobserve_metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/openobserve_logs]

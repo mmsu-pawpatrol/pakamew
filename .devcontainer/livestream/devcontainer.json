@@ -1,0 +1,57 @@
+{
+	"name": "pakamew-livestream",
+	"dockerComposeFile": [
+		"../../docker/docker-compose.app.yml",
+		"../../docker/docker-compose.ovenmediaengine.yml",
+		"../docker-compose.workspace.yml"
+	],
+	"service": "workspace",
+	"workspaceFolder": "/workspaces/pakamew",
+	"runServices": ["workspace", "postgres", "ovenmediaengine"],
+	"shutdownAction": "stopCompose",
+	"hostRequirements": {
+		"cpus": 4,
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+	"containerEnv": {
+		"HOST": "0.0.0.0"
+	},
+	"forwardPorts": [5173, 3001, 3000, 1935, 3333, 9000],
+	"portsAttributes": {
+		"3000": {
+			"label": "Livestream Node"
+		},
+		"3001": {
+			"label": "App Server"
+		},
+		"5173": {
+			"label": "App Web",
+			"onAutoForward": "openPreview"
+		},
+		"1935": {
+			"label": "OME RTMP"
+		},
+		"3333": {
+			"label": "OME Signaling"
+		},
+		"9000": {
+			"label": "OME Origin"
+		}
+	},
+	"postCreateCommand": "node .devcontainer/scripts/post-create.mjs",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"Prisma.prisma",
+				"redhat.vscode-yaml",
+				"vitest.explorer",
+				"usernamehw.errorlens",
+				"wix.vscode-import-cost"
+			]
+		}
+	}
+}

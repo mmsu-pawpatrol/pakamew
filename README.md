@@ -2,15 +2,15 @@
 
 ## Tech Stack
 
-- 🖥️ **Frontend App:** [React](https://react.dev/) + [TanStack Router](https://tanstack.com/router/latest) power the web SPA & routing.
-- 🎨 **Frontend UI:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + support component styling and UI primitives.
-- 🧠 **Backend Runtime:** [Node.js](https://nodejs.org/) + [Hono](https://hono.dev/) powers the server and backend tooling.
+- 🖥️ **Frontend App:** [React](https://react.dev/) + [TanStack Router](https://tanstack.com/router/latest) power the web SPA and routing.
+- 🎨 **Frontend UI:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) support component styling and UI primitives.
+- 🧠 **Backend Runtime:** [Node.js](https://nodejs.org/) + [Hono](https://hono.dev/) power the server and backend tooling.
 - 🛣️ **API Layer:** [oRPC](https://orpc.unnoq.com/) + [OpenAPI](https://www.openapis.org/) + [Scalar](https://scalar.com/) provide typed APIs and interactive API docs.
 - 🔐 **Authentication:** [Better Auth](https://www.better-auth.com/) handles sessions, anonymous access, admin flows, and API keys.
 - 🗄️ **Database:** [Prisma](https://www.prisma.io/) + [PostgreSQL](https://www.postgresql.org/) power typed data access and relational persistence.
-- 📊 **Observability:** [OpenTelemetry](https://opentelemetry.io/) + [Grafana](https://grafana.com/) + [Loki](https://grafana.com/oss/loki/) + [Tempo](https://grafana.com/oss/tempo/) + [Prometheus](https://prometheus.io/) cover traces, logs, metrics, and dashboards.
+- 📊 **Observability:** [OpenTelemetry](https://opentelemetry.io/) + [OpenObserve](https://openobserve.ai/) + [Grafana LGTM](https://grafana.com/docs/opentelemetry/collector/opentelemetry-collector-lgtm/) cover lightweight and full local observability workflows.
 - 📡 **Livestream Node:** [Express](https://expressjs.com/) + [ws](https://github.com/websockets/ws) + [SerialPort](https://serialport.io/) bridge shelter camera streams over network and serial channels.
-- 🐾 **Shelter Device:** [esp32-camera](https://github.com/espressif/esp32-camera) + [WiFi (Arduino ESP32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi) + [Serial (Arduino)](https://docs.arduino.cc/language-reference/en/functions/communication/serial/) run shelter streaming
+- 🐾 **Shelter Device:** [esp32-camera](https://github.com/espressif/esp32-camera) + [WiFi (Arduino ESP32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi) + [Serial (Arduino)](https://docs.arduino.cc/language-reference/en/functions/communication/serial/) run shelter streaming.
 
 Detailed breakdown: [docs/technology-stack.md](./docs/technology-stack.md)
 
@@ -18,36 +18,53 @@ Detailed breakdown: [docs/technology-stack.md](./docs/technology-stack.md)
 
 Environment:
 
-- Preferred Runtime: `NodeJS v22`
+- Preferred Runtime: `NodeJS v24`
 - Preferred Package Manager: `pnpm v10`
 
-After cloning the repository, run the following commands to initialize the repo.
+After cloning the repository, run the following command to initialize the repo.
 
 ```bash
 # ⚠️ project node_modules ≈ 700 MB disk size
-pnpm install        # install project dependencies and prepares git hooks
+pnpm install
 ```
 
-Create local environment files for both apps:
+Create local environment files for the workspace packages:
 
 ```bash
-cp ./server/.env.example ./server/.env
-cp ./web/.env.example ./web/.env
+cp ./packages/app-server/.env.example ./packages/app-server/.env
+cp ./packages/app-web/.env.example ./packages/app-web/.env
+cp ./packages/livestream-node/.env.example ./packages/livestream-node/.env
 ```
 
-Start external dependency services with docker-compose:
+Start dependency services from the canonical `docker/` compose files:
 
 ```bash
-# ℹ️ Grafana LGTM for Observability during dev is OPTIONAL
-# ⚠️ See download/disk sizes
-docker compose up -d postgres   # postgres:17.4 ≈ 100 MB download size / 400 MB disk size
-docker compose up -d lgtm       # grafana/otel-lgtm:0.19.1 ≈ 600 MB download size / 2.0 GB disk size
+# Base app infrastructure
+docker compose -f docker/docker-compose.app.yml up -d
+
+# E2E livestream workflow
+docker compose \
+  -f docker/docker-compose.app.yml \
+  -f docker/docker-compose.ovenmediaengine.yml \
+  up -d
+
+# Lightweight observability workflow
+docker compose \
+  -f docker/docker-compose.app.yml \
+  -f docker/docker-compose.otel-openobserve.yml \
+  up -d
+
+# Full local observability workflow
+docker compose \
+  -f docker/docker-compose.app.yml \
+  -f docker/docker-compose.otel-lgtm.yml \
+  up -d
 ```
 
 Generate Prisma client and apply schema changes to the local database:
 
 ```bash
-cd ./server
+cd ./packages/app-server
 pnpm exec prisma generate
 pnpm exec prisma migrate dev
 ```
@@ -65,30 +82,40 @@ pnpm run tsgo:check         # typecheck with native Typescript (experimental / f
 pnpm run test               # run vitest
 
 # Server App
-cd ./server
+cd ./packages/app-server
 pnpm run dev        # start development server
 pnpm run build      # bundle server for production
 pnpm run preview    # preview server for prod
 
 # Web App
-cd ./web
+cd ./packages/app-web
 pnpm run dev        # start development server
 pnpm run build      # build web app
 pnpm run preview    # preview web for prod
 ```
 
+## Devcontainers
+
+The repository ships with workflow-specific devcontainer variants under `.devcontainer/`:
+
+- `app`: base cloud-friendly workspace for frontend and backend work.
+- `design`: frontend design-time workspace, no extra container services.
+- `livestream`: app workspace plus OvenMediaEngine for E2E livestream work.
+- `observability`: app workspace plus OpenObserve.
+- `full`: app, livestream, and lightweight observability combined.
+
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 
 ## Tooling
 
 This project uses the following tools to enforce consistent coding conventions, formatting, and automated workflows:
 
-### Formatting & Linting
+### Formatting and Linting
 
 - [Vitest](https://vitest.dev/): Framework for unit and integration testing.
-- [Vite](https://vitejs.dev/): HMR-dev server and bundler for web applications.
+- [Vite](https://vitejs.dev/): HMR dev server and bundler for web applications.
 - [Prettier](https://prettier.io/): Enforces consistent code formatting.
 - [ESLint](https://eslint.org/): Enforces best practices on coding conventions.
 - [Typescript](http://typescriptlang.org/): Provides static typing and checks.
@@ -96,7 +123,7 @@ This project uses the following tools to enforce consistent coding conventions, 
 
 ### Automation
 
-- [Github Actions](https://github.com/features/actions): Automates CI workflows, including formatting, linting, & typechecking.
+- [GitHub Actions](https://github.com/features/actions): Automates CI workflows, including formatting, linting, and typechecking.
 
 ## Contributors
 

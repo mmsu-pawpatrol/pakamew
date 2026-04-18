@@ -1,0 +1,41 @@
+{
+	"name": "pakamew-app",
+	"dockerComposeFile": ["../../docker/docker-compose.app.yml", "../docker-compose.workspace.yml"],
+	"service": "workspace",
+	"workspaceFolder": "/workspaces/pakamew",
+	"runServices": ["workspace", "postgres"],
+	"shutdownAction": "stopCompose",
+	"hostRequirements": {
+		"cpus": 2,
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+	"containerEnv": {
+		"HOST": "0.0.0.0"
+	},
+	"forwardPorts": [5173, 3001],
+	"portsAttributes": {
+		"3001": {
+			"label": "App Server"
+		},
+		"5173": {
+			"label": "App Web",
+			"onAutoForward": "openPreview"
+		}
+	},
+	"postCreateCommand": "node .devcontainer/scripts/post-create.mjs",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"Prisma.prisma",
+				"redhat.vscode-yaml",
+				"vitest.explorer",
+				"usernamehw.errorlens",
+				"wix.vscode-import-cost"
+			]
+		}
+	}
+}
