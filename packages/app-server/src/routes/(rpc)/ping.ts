@@ -15,5 +15,4 @@ export const ping = os
 		await prisma.$queryRaw`SELECT 'pong'`;
 
 		return "pong";
-	})
-	.callable();
+	});
