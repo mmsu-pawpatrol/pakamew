@@ -1,0 +1,7 @@
+procs:
+  web:
+    shell: "pnpm run preview:web"
+  server:
+    shell: "pnpm run preview:server"
+  livestream-node:
+    shell: "pnpm run start:livestream-node"

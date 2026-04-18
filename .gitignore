@@ -7,3 +7,5 @@ dist
 generated
 .tanstack
 .dependency-graph*
+mprocs.log
+.pnpm-store

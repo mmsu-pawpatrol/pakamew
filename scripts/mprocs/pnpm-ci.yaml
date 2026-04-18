@@ -1,0 +1,9 @@
+procs:
+  eslint:
+    shell: "pnpm run eslint"
+  prettier:
+    shell: "pnpm run prettier"
+  tsgo:
+    shell: "pnpm run tsgo:check"
+  vitest:
+    shell: "pnpm run test"

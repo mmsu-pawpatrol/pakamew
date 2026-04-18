@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -46,4 +48,6 @@ parser.on("data", (frameData) => {
 	});
 });
 
-server.listen(3100, "0.0.0.0", () => console.log(`🚀 Server on http://localhost:3100`));
+const PORT = process.env.PORT || 3100;
+
+server.listen(PORT, "0.0.0.0", () => console.log(`🚀 Server on http://localhost:${PORT}`));
