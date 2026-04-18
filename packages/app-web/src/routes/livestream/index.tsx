@@ -1,9 +1,9 @@
+import { LivestreamPlayer } from "@/components/livestream-player";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LivestreamPlayer } from "@/lib/livestream";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChatPanel } from "./-chat-panel";
 import { EventsPanel } from "./-events-panel";

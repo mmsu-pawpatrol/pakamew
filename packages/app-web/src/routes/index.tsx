@@ -1,10 +1,10 @@
+import { LivestreamPlayer } from "@/components/livestream-player";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { LivestreamPlayer } from "@/lib/livestream";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import { BoneIcon, HeartHandshakeIcon, PawPrintIcon, ShieldCheckIcon, UserRoundIcon } from "lucide-react";

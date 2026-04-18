@@ -1,17 +1,12 @@
-export type LivestreamConnectionStatus = "connecting" | "connected" | "live" | "offline" | "error";
+export type StreamConnectionStatus = "connecting" | "connected" | "live" | "offline" | "error";
 
-export type LivestreamFrameByUrl = Record<string, string>;
-
-export interface LivestreamState {
-	url: string;
-	status: LivestreamConnectionStatus;
-	frames: LivestreamFrameByUrl;
+export interface StreamState {
+	status: StreamConnectionStatus;
 }
 
-export type LivestreamCommand =
+export type StreamCommand =
 	| {
 			type: "connect";
-			url: string;
 	  }
 	| {
 			type: "disconnect";
@@ -21,11 +16,7 @@ export type LivestreamCommand =
 			frameUrl: string;
 	  };
 
-export type LivestreamEvent =
-	| {
-			type: "source-url-set";
-			url: string;
-	  }
+export type StreamEvent =
 	| {
 			type: "retry-requested";
 	  }
@@ -43,11 +34,10 @@ export type LivestreamEvent =
 	  }
 	| {
 			type: "frame-ready";
-			sourceUrl: string;
 			frameUrl: string;
 	  };
 
-export interface LivestreamReducerResult {
-	state: LivestreamState;
-	commands: LivestreamCommand[];
+export interface StreamReducerResult {
+	state: StreamState;
+	commands: StreamCommand[];
 }

@@ -1,8 +1,8 @@
 export { Countdown } from "./countdown";
-export { LivestreamFrameShell, type LivestreamFrameShellProps } from "./frame-shell";
 export { LiveBadge } from "./live-badge";
+export { LivestreamPlayer, type LivestreamPlayerProps } from "./livestream-player";
 export {
 	LivestreamStatusOverlay,
-	type LivestreamStatusOverlayProps,
 	type LivestreamStatusOverlayMode,
+	type LivestreamStatusOverlayProps,
 } from "./status-overlay";
