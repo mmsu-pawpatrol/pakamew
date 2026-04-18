@@ -18,7 +18,7 @@ export interface OtelEnv {
 }
 
 export const OtelEnvSchema = z.object({
-	OTEL_ENABLED: z.coerce.boolean().default(false),
+	OTEL_ENABLED: z.stringbool().default(false),
 
 	OTEL_EXPORTER_OTLP_ENDPOINT: z.string().min(1),
 

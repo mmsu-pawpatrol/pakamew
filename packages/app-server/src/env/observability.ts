@@ -44,11 +44,11 @@ export interface ObservabilitySwitchesEnv {
 }
 
 export const ObservabilitySwitchesEnvSchema = z.object({
-	OBS_ENABLE_DEV_TRACING: z.coerce.boolean().default(false),
+	OBS_ENABLE_DEV_TRACING: z.stringbool().default(false),
 
-	OBS_ENABLE_ORPC_LOG_REQUEST_RESPONSE: z.coerce.boolean().optional(),
+	OBS_ENABLE_ORPC_LOG_REQUEST_RESPONSE: z.stringbool().optional(),
 
-	OBS_ENABLE_ORPC_LOG_REQUEST_ABORT: z.coerce.boolean().optional(),
+	OBS_ENABLE_ORPC_LOG_REQUEST_ABORT: z.stringbool().optional(),
 
-	OBS_ENABLE_PRISMA_LOG_QUERIES: z.coerce.boolean().optional(),
+	OBS_ENABLE_PRISMA_LOG_QUERIES: z.stringbool().optional(),
 }) satisfies z.ZodType<ObservabilitySwitchesEnv>;
