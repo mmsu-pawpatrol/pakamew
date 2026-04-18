@@ -36,7 +36,7 @@ cp ./packages/app-web/.env.example ./packages/app-web/.env
 cp ./packages/livestream-node/.env.example ./packages/livestream-node/.env
 ```
 
-Start dependency services from the canonical `docker/` compose files:
+Start dependency services from the `docker/` compose files:
 
 ```bash
 # Base app infrastructure
