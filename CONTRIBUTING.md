@@ -2,7 +2,7 @@
 
 ## Technical Workarounds
 
-- Document workaround-specific behavior in `docs/technical-workarounds.md`.
+- Document workaround-specific behavior in `docs/workarounds.md`.
 - Keep `README.md` focused on onboarding and day-1 setup.
 
 ## Environment Variables
