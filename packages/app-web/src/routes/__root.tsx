@@ -4,6 +4,17 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+const ROOT_DEVTOOLS_CONFIG = {
+	position: "bottom-right",
+} as const;
+
+const ROOT_DEVTOOLS_PLUGINS = [
+	{
+		name: "TanStack Router",
+		render: <TanStackRouterDevtoolsPanel />,
+	},
+];
+
 export const Route = createRootRoute({
 	component: RootComponent,
 	notFoundComponent: NotFoundComponent,
@@ -27,15 +38,7 @@ function RootComponent() {
 			{!isDemo ? <BottomNavbar pathname={pathname} /> : null}
 
 			{/* Development tooling panels */}
-			<TanStackDevtools
-				config={{ position: "bottom-right" }}
-				plugins={[
-					{
-						name: "TanStack Router",
-						render: <TanStackRouterDevtoolsPanel />,
-					},
-				]}
-			/>
+			<TanStackDevtools config={ROOT_DEVTOOLS_CONFIG} plugins={ROOT_DEVTOOLS_PLUGINS} />
 		</>
 	);
 }
