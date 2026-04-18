@@ -1,0 +1,5 @@
+procs:
+  web:
+    shell: "pnpm run build:web"
+  server:
+    shell: "pnpm run build:server"

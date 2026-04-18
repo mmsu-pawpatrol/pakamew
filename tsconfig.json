@@ -4,6 +4,7 @@
 	"references": [
 		{ "path": "./tsconfig.node.json" },
 		{ "path": "./packages/app-web" },
-		{ "path": "./packages/app-server" }
+		{ "path": "./packages/app-server" },
+		{ "path": "./packages/livestream-node" }
 	]
 }

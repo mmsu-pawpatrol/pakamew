@@ -4,6 +4,7 @@
 	"version": "0.0.0",
 	"type": "commonjs",
 	"scripts": {
+		"start": "tsx scripts/cli.ts",
 		"start:wifi": "node server-wifi.js",
 		"start:wired": "node server-wired.js",
 		"start:webcam-test": "node server-webcam-test.js",
