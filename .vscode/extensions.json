@@ -1,0 +1,13 @@
+{
+	"recommendations": [
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"bradlc.vscode-tailwindcss",
+		"Prisma.prisma",
+		"redhat.vscode-yaml",
+		"ms-vscode-remote.remote-containers",
+		"vitest.explorer",
+		"usernamehw.errorlens",
+		"wix.vscode-import-cost"
+	]
+}

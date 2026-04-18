@@ -1,0 +1,37 @@
+name: pakamew
+
+services:
+  openobserve:
+    image: openobserve/openobserve:v0.80.0
+    container_name: pakamew-openobserve
+    restart: unless-stopped
+    environment:
+      ZO_DATA_DIR: /data
+      ZO_ROOT_USER_EMAIL: pakamew@example.com
+      ZO_ROOT_USER_PASSWORD: pakamew
+    ports:
+      - "5080:5080" # OpenObserve UI and ingestion
+    volumes:
+      - pakamew-openobserve-data:/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.150.1
+    container_name: pakamew-otel-collector-openobserve
+    restart: unless-stopped
+    depends_on:
+      - openobserve
+    environment:
+      OPENOBSERVE_ENDPOINT: http://openobserve:5080/api/default
+      # Base64 of "pakamew@example.com:pakamew"
+      OPENOBSERVE_AUTH_HEADER: Basic cGFrYW1ld0BleGFtcGxlLmNvbTpwYWthbWV3
+      OPENOBSERVE_LOGS_STREAM: pakamew-logs
+      OPENOBSERVE_METRICS_STREAM: pakamew-metrics
+      OPENOBSERVE_TRACES_STREAM: pakamew-traces
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+    volumes:
+      - ./observability/openobserve/otelcol-config.yaml:/etc/otelcol/config.yaml:ro
+
+volumes:
+  pakamew-openobserve-data:

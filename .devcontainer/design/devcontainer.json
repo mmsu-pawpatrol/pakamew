@@ -1,0 +1,39 @@
+{
+	"name": "pakamew-design",
+	"dockerComposeFile": ["../docker-compose.workspace.yml"],
+	"service": "workspace",
+	"workspaceFolder": "/workspaces/pakamew",
+	"runServices": ["workspace"],
+	"shutdownAction": "stopCompose",
+	"hostRequirements": {
+		"cpus": 2,
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+	"containerEnv": {
+		"HOST": "0.0.0.0",
+		"VITE_DESIGN_TIME": "true"
+	},
+	"forwardPorts": [5173],
+	"portsAttributes": {
+		"5173": {
+			"label": "App Web",
+			"onAutoForward": "openPreview"
+		}
+	},
+	"postCreateCommand": "node .devcontainer/scripts/post-create.mjs",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"Prisma.prisma",
+				"redhat.vscode-yaml",
+				"vitest.explorer",
+				"usernamehw.errorlens",
+				"wix.vscode-import-cost"
+			]
+		}
+	}
+}
