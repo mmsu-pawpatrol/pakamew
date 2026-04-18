@@ -1,3 +1,5 @@
+name: pakamew
+
 services:
   ovenmediaengine:
     image: airensoft/ovenmediaengine:v0.20.0

@@ -1,3 +1,5 @@
+name: pakamew
+
 services:
   openobserve:
     image: o2cr.ai/openobserve/openobserve-enterprise:latest
