@@ -13,9 +13,9 @@
 
 ## Pitch
 
-People on campus often want to help stray animals, but the support system is usually fragmented. Feeding depends on individual volunteer effort, donations can be difficult to coordinate, and supporters rarely get a clear view of what happens after they give. The result is a trust problem as much as an operational one.
+People on campus often want to help stray animals, but the support system is usually fragmented. Feeding depends on whoever is available, donations can be hard to coordinate, and supporters rarely directy see what happens after giving.
 
-Pakamew turns that informal effort into a real campus-wide platform for animal welfare transparency. It combines donations, livestream visibility, feeder-connected actions, and admin tools for monitoring, records, and oversight in one system. Supporters can contribute with clear expectations on where donations go. Organizers get the infrastructure to run that program reliably. The result is a more transparent, accountable, and sustainable way to care for campus strays.
+Pakamew turns individual effort into a campus-wide platform for animal welfare transparency. It combines donations, livestream access, connected feeders, and admin tools for oversight in one system. Supporters can contribute with clear expectations on where donations go. Organizers get the infrastructure to operate their program. The result is a more organized, accountable, and sustainable way to care for campus strays.
 
 ## Development
 
