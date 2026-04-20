@@ -3,21 +3,20 @@ require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const path = require("path");
 const { createFfmpegRtmpForwarder } = require("./ffmpeg/rtmp-forwarder");
 const { createOmePlaybackUrls } = require("./ome-playback-urls");
 
 const app = express();
 const server = http.createServer(app);
 
-// Disable compression to save CPU and ensure zero-latency binary streaming.
+// Disable compression to reduce relay overhead and latency.
 const wss = new WebSocket.Server({
 	server,
 	perMessageDeflate: false,
 });
 
-wss.on("error", (error) => {
-	console.error("WebSocket server error:", error);
-});
+app.use(express.static(path.join(__dirname, "public")));
 
 const viewers = new Set();
 
@@ -51,20 +50,17 @@ const omeForwarder = ENABLE_OME_FORWARD
 wss.on("connection", (ws, req) => {
 	const url = req.url;
 
-	// 1. ESP32 Camera Connection
+	// Browser webcam publisher sends JPEG binary frames here.
 	if (url === "/esp32-stream") {
-		console.log("ESP32-CAM connected over WiFi");
+		console.log("📷 Webcam Source Connected!");
 
-		ws.on("message", (data) => {
+		ws.on("message", (data, isBinary) => {
+			if (!isBinary) return;
 			const frameBuffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
 
-			// Broadcast the raw JPEG binary to all React viewers.
 			viewers.forEach((viewer) => {
-				if (viewer.readyState === WebSocket.OPEN) {
-					// Backpressure check: drop frame if viewer's internet is lagging.
-					if (viewer.bufferedAmount === 0) {
-						viewer.send(frameBuffer, { binary: true });
-					}
+				if (viewer.readyState === WebSocket.OPEN && viewer.bufferedAmount === 0) {
+					viewer.send(frameBuffer, { binary: true });
 				}
 			});
 
@@ -73,21 +69,21 @@ wss.on("connection", (ws, req) => {
 			}
 		});
 
-		ws.on("close", () => console.log("ESP32-CAM disconnected"));
-		ws.on("error", (err) => console.error("ESP32 connection error:", err));
+		ws.on("close", () => console.log("📷 Webcam Source Disconnected!"));
+		ws.on("error", (err) => console.error("Webcam Source Error:", err));
 	}
-	// 2. React Frontend Connection
+	// React frontend viewer receives relayed JPEG binary frames.
 	else if (url === "/viewer") {
-		console.log("React Web Viewer connected");
+		console.log("👁️ React Web Viewer Connected!");
 		viewers.add(ws);
 
 		ws.on("close", () => {
-			console.log("React Web Viewer disconnected");
+			console.log("👁️ React Web Viewer Disconnected!");
 			viewers.delete(ws);
 		});
 		ws.on("error", () => viewers.delete(ws));
 	}
-	// Reject anything else
+	// Reject anything else.
 	else {
 		ws.close();
 	}
@@ -107,9 +103,9 @@ server.listen(PORT, "0.0.0.0", () => {
 	}
 
 	console.log("=========================================");
-	console.log(`Video Relay Server running on port ${PORT}`);
-	console.log(`ESP32 should connect to: ws://<YOUR_IP>:${PORT}/esp32-stream`);
-	console.log(`React will connect to:   ws://127.0.0.1:${PORT}/viewer`);
+	console.log(`🚀 Webcam Test Relay running on port ${PORT}`);
+	console.log(`📷 Open webcam source page: http://127.0.0.1:${PORT}/webcam.html`);
+	console.log(`💻 React will connect to:   ws://127.0.0.1:${PORT}/viewer`);
 	console.log("=========================================");
 });
 
