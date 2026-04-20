@@ -5,6 +5,8 @@ const http = require("http");
 const WebSocket = require("ws");
 const path = require("path");
 const { createFfmpegRtmpForwarder } = require("./ffmpeg/rtmp-forwarder");
+const { parseBooleanEnv, resolveGatewayConfig } = require("./gateway/config");
+const { createNormalizedLivestreamGateway } = require("./gateway/live-gateway");
 const { createOmePlaybackUrls } = require("./ome-playback-urls");
 
 const app = express();
@@ -18,34 +20,28 @@ const wss = new WebSocket.Server({
 
 app.use(express.static(path.join(__dirname, "public")));
 
-const viewers = new Set();
-
-function parseBooleanEnv(value, defaultValue) {
-	if (value == null) return defaultValue;
-	const normalized = value.toLowerCase().trim();
-	if (["1", "true", "yes", "on"].includes(normalized)) return true;
-	if (["0", "false", "no", "off"].includes(normalized)) return false;
-	return defaultValue;
-}
-
-function parseIntegerEnv(value, defaultValue) {
-	const parsed = Number.parseInt(value, 10);
-	return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
-}
-
 const OME_RTMP_URL = process.env.OME_RTMP_URL || "rtmp://127.0.0.1:1935/app/esp32";
 const FFMPEG_PATH = process.env.FFMPEG_PATH || "ffmpeg";
-const STREAM_FPS = parseIntegerEnv(process.env.STREAM_FPS, 10);
 const ENABLE_OME_FORWARD = parseBooleanEnv(process.env.ENABLE_OME_FORWARD, false);
+const gatewayConfig = resolveGatewayConfig(process.env);
 const omePlaybackUrls = createOmePlaybackUrls(OME_RTMP_URL);
 
 const omeForwarder = ENABLE_OME_FORWARD
 	? createFfmpegRtmpForwarder({
 			ffmpegPath: FFMPEG_PATH,
 			rtmpUrl: OME_RTMP_URL,
-			streamFps: STREAM_FPS,
+			streamFps: gatewayConfig.targetOutputFps,
 		})
 	: null;
+const gateway = createNormalizedLivestreamGateway({
+	jitterBufferMs: gatewayConfig.jitterBufferMs,
+	llhlsUrl: omePlaybackUrls?.llhlsUrl ?? null,
+	logPrefix: "[gateway:webcam]",
+	maxPendingAgeMs: gatewayConfig.maxPendingAgeMs,
+	omeForwarder,
+	sourceStaleTimeoutMs: gatewayConfig.sourceStaleTimeoutMs,
+	targetOutputFps: gatewayConfig.targetOutputFps,
+});
 
 wss.on("connection", (ws, req) => {
 	const url = req.url;
@@ -57,31 +53,25 @@ wss.on("connection", (ws, req) => {
 		ws.on("message", (data, isBinary) => {
 			if (!isBinary) return;
 			const frameBuffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
-
-			viewers.forEach((viewer) => {
-				if (viewer.readyState === WebSocket.OPEN && viewer.bufferedAmount === 0) {
-					viewer.send(frameBuffer, { binary: true });
-				}
-			});
-
-			if (omeForwarder) {
-				omeForwarder.pushFrame(frameBuffer);
-			}
+			gateway.pushSourceFrame(frameBuffer);
 		});
 
-		ws.on("close", () => console.log("📷 Webcam Source Disconnected!"));
+		ws.on("close", () => {
+			gateway.resetSource();
+			console.log("📷 Webcam Source Disconnected!");
+		});
 		ws.on("error", (err) => console.error("Webcam Source Error:", err));
 	}
 	// React frontend viewer receives relayed JPEG binary frames.
 	else if (url === "/viewer") {
 		console.log("👁️ React Web Viewer Connected!");
-		viewers.add(ws);
+		gateway.addViewer(ws);
 
 		ws.on("close", () => {
 			console.log("👁️ React Web Viewer Disconnected!");
-			viewers.delete(ws);
+			gateway.removeViewer(ws);
 		});
-		ws.on("error", () => viewers.delete(ws));
+		ws.on("error", () => gateway.removeViewer(ws));
 	}
 	// Reject anything else.
 	else {
@@ -93,7 +83,7 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, "0.0.0.0", () => {
 	if (omeForwarder) {
 		omeForwarder.start();
-		console.log(`OME forwarding enabled -> ${OME_RTMP_URL} (fps=${STREAM_FPS})`);
+		console.log(`OME forwarding enabled -> ${OME_RTMP_URL} (fps=${gatewayConfig.targetOutputFps})`);
 		if (omePlaybackUrls) {
 			console.log(`OME WebRTC sample URL: ${omePlaybackUrls.webRtcUrl}`);
 			console.log(`OME LL-HLS sample URL: ${omePlaybackUrls.llhlsUrl}`);
@@ -101,16 +91,21 @@ server.listen(PORT, "0.0.0.0", () => {
 	} else {
 		console.log("OME forwarding disabled (set ENABLE_OME_FORWARD=true to enable)");
 	}
+	gateway.start();
 
 	console.log("=========================================");
 	console.log(`🚀 Webcam Test Relay running on port ${PORT}`);
 	console.log(`📷 Open webcam source page: http://127.0.0.1:${PORT}/webcam.html`);
 	console.log(`💻 React will connect to:   ws://127.0.0.1:${PORT}/viewer`);
+	console.log(
+		`Gateway pacing: ${gatewayConfig.targetOutputFps}fps | jitter=${gatewayConfig.jitterBufferMs}ms | maxPendingAge=${gatewayConfig.maxPendingAgeMs}ms`,
+	);
 	console.log("=========================================");
 });
 
 function shutdown() {
 	console.log("Shutting down livestream-node...");
+	gateway.stop();
 	if (omeForwarder) {
 		omeForwarder.stop();
 	}
