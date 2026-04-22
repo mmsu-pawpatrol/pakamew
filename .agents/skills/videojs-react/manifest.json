@@ -1,0 +1,231 @@
+{
+  "generatedAt": "2026-04-22T16:45:07.870Z",
+  "sourceIndex": "https://videojs.org/docs/framework/react/llms.txt",
+  "documentCount": 56,
+  "documents": [
+    {
+      "sourceUrl": "https://videojs.org/llms.txt",
+      "localPath": "_site/llms.txt"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/accessibility.md",
+      "localPath": "concepts/accessibility.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/browser-support.md",
+      "localPath": "concepts/browser-support.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/features.md",
+      "localPath": "concepts/features.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/overview.md",
+      "localPath": "concepts/overview.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/presets.md",
+      "localPath": "concepts/presets.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/skins.md",
+      "localPath": "concepts/skins.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/ui-components.md",
+      "localPath": "concepts/ui-components.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/concepts/v10-roadmap.md",
+      "localPath": "concepts/v10-roadmap.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/how-to/build-with-ai.md",
+      "localPath": "how-to/build-with-ai.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/how-to/customize-skins.md",
+      "localPath": "how-to/customize-skins.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/how-to/installation.md",
+      "localPath": "how-to/installation.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/llms.txt",
+      "localPath": "llms.txt"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/buffering-indicator.md",
+      "localPath": "reference/buffering-indicator.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/captions-button.md",
+      "localPath": "reference/captions-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/controls.md",
+      "localPath": "reference/controls.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/create-player.md",
+      "localPath": "reference/create-player.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/create-selector.md",
+      "localPath": "reference/create-selector.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-buffer.md",
+      "localPath": "reference/feature-buffer.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-cast.md",
+      "localPath": "reference/feature-cast.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-controls.md",
+      "localPath": "reference/feature-controls.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-error.md",
+      "localPath": "reference/feature-error.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-fullscreen.md",
+      "localPath": "reference/feature-fullscreen.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-pip.md",
+      "localPath": "reference/feature-pip.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-playback-rate.md",
+      "localPath": "reference/feature-playback-rate.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-playback.md",
+      "localPath": "reference/feature-playback.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-source.md",
+      "localPath": "reference/feature-source.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-text-tracks.md",
+      "localPath": "reference/feature-text-tracks.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-time.md",
+      "localPath": "reference/feature-time.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/feature-volume.md",
+      "localPath": "reference/feature-volume.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/fullscreen-button.md",
+      "localPath": "reference/fullscreen-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/mute-button.md",
+      "localPath": "reference/mute-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/pip-button.md",
+      "localPath": "reference/pip-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/play-button.md",
+      "localPath": "reference/play-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/playback-rate-button.md",
+      "localPath": "reference/playback-rate-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/player-container.md",
+      "localPath": "reference/player-container.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/player-provider.md",
+      "localPath": "reference/player-provider.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/popover.md",
+      "localPath": "reference/popover.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/poster.md",
+      "localPath": "reference/poster.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/render-element.md",
+      "localPath": "reference/render-element.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/seek-button.md",
+      "localPath": "reference/seek-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/slider.md",
+      "localPath": "reference/slider.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/thumbnail.md",
+      "localPath": "reference/thumbnail.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/time-slider.md",
+      "localPath": "reference/time-slider.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/time.md",
+      "localPath": "reference/time.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/tooltip.md",
+      "localPath": "reference/tooltip.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-button.md",
+      "localPath": "reference/use-button.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-container-attach.md",
+      "localPath": "reference/use-container-attach.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-media-attach.md",
+      "localPath": "reference/use-media-attach.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-media.md",
+      "localPath": "reference/use-media.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-player-context.md",
+      "localPath": "reference/use-player-context.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-player.md",
+      "localPath": "reference/use-player.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-selector.md",
+      "localPath": "reference/use-selector.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-snapshot.md",
+      "localPath": "reference/use-snapshot.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/use-store.md",
+      "localPath": "reference/use-store.md"
+    },
+    {
+      "sourceUrl": "https://videojs.org/docs/framework/react/reference/volume-slider.md",
+      "localPath": "reference/volume-slider.md"
+    }
+  ]
+}

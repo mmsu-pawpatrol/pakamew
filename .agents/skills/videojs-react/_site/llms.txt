@@ -1,0 +1,13 @@
+# Video.js v10
+
+> Modern video player framework with multi-platform support
+
+## Documentation
+
+- [Html Docs](https://videojs.org/docs/framework/html/llms.txt)
+- [React Docs](../llms.txt)
+
+## Blog
+
+- [Blog Posts](https://videojs.org/blog/llms.txt)
+
