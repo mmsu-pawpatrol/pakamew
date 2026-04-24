@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const http = require("http");
+const path = require("path");
 const WebSocket = require("ws");
 const { createFfmpegRtmpForwarder } = require("./ffmpeg/rtmp-forwarder");
 
@@ -13,6 +14,8 @@ const wss = new WebSocket.Server({
 	server,
 	perMessageDeflate: false,
 });
+
+app.use(express.static(path.join(__dirname, "public")));
 
 wss.on("error", (error) => {
 	console.error("WebSocket server error:", error);
