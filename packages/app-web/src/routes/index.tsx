@@ -80,7 +80,7 @@ function Homepage() {
 				{/* Livestream preview card */}
 				<Card className="gap-0 overflow-hidden py-0">
 					<AspectRatio ratio={16 / 9} className="bg-muted relative overflow-hidden">
-						<LivestreamPlayer alt="Shelter livestream preview" className="h-full w-full" />
+						<LivestreamPlayer alt="Shelter livestream preview" chrome="badge" className="h-full w-full" />
 
 						{/* Desktop CTA overlay for stream context and quick action */}
 						<div className="absolute inset-x-0 bottom-0 hidden md:block">
