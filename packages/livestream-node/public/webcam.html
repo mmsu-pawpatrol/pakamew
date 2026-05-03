@@ -131,7 +131,9 @@
 			function getInitialSocketUrl() {
 				const params = new URLSearchParams(window.location.search);
 				const configuredValue =
-					params.get(SOCKET_URL_QUERY_KEY) ?? window.localStorage.getItem(SOCKET_URL_STORAGE_KEY) ?? window.location.host;
+					params.get(SOCKET_URL_QUERY_KEY) ??
+					window.localStorage.getItem(SOCKET_URL_STORAGE_KEY) ??
+					window.location.host;
 
 				try {
 					return normalizeSocketUrl(configuredValue);
