@@ -9,3 +9,4 @@ generated
 .dependency-graph*
 mprocs.log
 .pnpm-store
+packages/shelter-device/esp32-cam/config.h

@@ -4,8 +4,11 @@ export interface Env {
 	/** Base URL for the backend API server. */
 	VITE_API_URL: string;
 
-	/** WebSocket URL used by livestream viewers. */
-	VITE_LIVESTREAM_URL: string;
+	/** Public HLS URL used for the default livestream player path. */
+	VITE_LIVESTREAM_PUBLIC_HLS_URL: string;
+
+	/** Gateway websocket URL for the raw-frame livestream fallback/debug path. */
+	VITE_LIVESTREAM_GATEWAY_WS_URL: string;
 
 	VITE_DESIGN_TIME: boolean;
 }
@@ -13,7 +16,9 @@ export interface Env {
 export const EnvSchema = z.object({
 	VITE_API_URL: z._default(z.string().check(z.url()), "http://127.0.0.1:3000"),
 
-	VITE_LIVESTREAM_URL: z._default(z.string(), "ws://127.0.0.1:3000/viewer"),
+	VITE_LIVESTREAM_PUBLIC_HLS_URL: z._default(z.string(), ""),
+
+	VITE_LIVESTREAM_GATEWAY_WS_URL: z._default(z.string(), "ws://127.0.0.1:3000/viewer"),
 
 	VITE_DESIGN_TIME: z._default(z.stringbool(), false),
 });

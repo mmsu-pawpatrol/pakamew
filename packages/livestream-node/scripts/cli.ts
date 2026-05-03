@@ -31,7 +31,8 @@ async function promptForServerChoice(): Promise<MenuChoice | null> {
 			{ value: "wifi", label: "WiFi relay", hint: "ESP32 camera over WiFi" },
 			{ value: "wifi-ome", label: "WiFi relay + OME", hint: "ESP32 camera with OME forwarding" },
 			{ value: "wired", label: "Wired relay", hint: "USB serial camera relay" },
-			{ value: "webcam-test", label: "Webcam test", hint: "Browser webcam source" },
+			{ value: "webcam", label: "Webcam", hint: "Browser webcam source" },
+			{ value: "webcam-ome", label: "Webcam + OME", hint: "Browser webcam source with OME forwarding" },
 			{ value: "exit", label: "Exit", hint: "Close the launcher" },
 		],
 	});

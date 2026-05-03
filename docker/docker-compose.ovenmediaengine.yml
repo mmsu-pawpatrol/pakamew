@@ -15,10 +15,9 @@ services:
       - "3478:3478" # WebRTC TCP relay (TURN)
       - "10000-10009:10000-10009/udp" # WebRTC ICE candidates
     volumes:
-      - pakamew-ome-origin-conf:/opt/ovenmediaengine/bin/origin_conf
+      - ./ovenmediaengine/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
       - pakamew-ome-edge-conf:/opt/ovenmediaengine/bin/edge_conf
     # Oven Player Demo: docker run -d -p 8090:80 airensoft/ovenplayerdemo:latest
 
 volumes:
-  pakamew-ome-origin-conf:
   pakamew-ome-edge-conf:

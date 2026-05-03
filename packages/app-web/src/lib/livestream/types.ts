@@ -1,43 +1,46 @@
-export type StreamConnectionStatus = "connecting" | "connected" | "live" | "offline" | "error";
+export type PlaybackSourceKind = "hls" | "websocket";
+export type PlaybackChrome = "interactive" | "badge";
 
-export interface StreamState {
-	status: StreamConnectionStatus;
+export type PlaybackAvailabilityStatus = "live" | "offline" | "degraded" | "maintenance" | "disabled";
+
+export type PlayerStatus = "idle" | "connecting" | "live" | "offline" | "error";
+
+export type PlaybackSource = { kind: "hls"; url: string } | { kind: "websocket"; url: string };
+export type HlsPlaybackSource = Extract<PlaybackSource, { kind: "hls" }>;
+
+export interface PlaybackAvailability {
+	livestreamId?: string;
+	livestreamKey?: string;
+	status?: PlaybackAvailabilityStatus;
+	sources: PlaybackSource[];
 }
 
-export type StreamCommand =
-	| {
-			type: "connect";
-	  }
-	| {
-			type: "disconnect";
-	  }
-	| {
-			type: "revoke-frame-url";
-			frameUrl: string;
-	  };
+export interface PlaybackAdapterSnapshot {
+	status: PlayerStatus;
+	canRetry: boolean;
+}
 
-export type StreamEvent =
-	| {
-			type: "retry-requested";
-	  }
-	| {
-			type: "frame-stalled";
-	  }
-	| {
-			type: "socket-opened";
-	  }
-	| {
-			type: "socket-errored";
-	  }
-	| {
-			type: "socket-closed";
-	  }
-	| {
-			type: "frame-ready";
-			frameUrl: string;
-	  };
+export interface PlaybackRuntimeSnapshot {
+	status: PlayerStatus;
+	targetSourceKind: PlaybackSourceKind | null;
+	sourceKind: PlaybackSourceKind | null;
+	sources: PlaybackSource[];
+	canRetry: boolean;
+}
 
-export interface StreamReducerResult {
-	state: StreamState;
-	commands: StreamCommand[];
+export interface PlaybackAdapter {
+	mount: (target: HTMLElement, options?: { className?: string }) => () => void;
+	subscribe: (listener: () => void) => () => void;
+	snapshot: () => PlaybackAdapterSnapshot;
+	retry: () => void;
+	dispose: () => void;
+}
+
+export interface LivestreamRuntime {
+	subscribe: (listener: () => void) => () => void;
+	snapshot: () => PlaybackRuntimeSnapshot;
+	mount: (target: HTMLElement, options?: { className?: string }) => () => void;
+	switch: (kind: PlaybackSourceKind) => void;
+	retry: () => void;
+	dispose: () => void;
 }
