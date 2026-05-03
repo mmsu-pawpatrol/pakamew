@@ -1,0 +1,38 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  appserver:
+    address: ":3001"
+  livestream:
+    address: ":3000"
+  traefik:
+    address: ":8080"
+  metrics:
+    address: ":8082"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: pakamew-prod-edge
+
+ping: {}
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+
+accessLog: {}
+
+log:
+  level: INFO
