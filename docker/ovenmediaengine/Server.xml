@@ -120,7 +120,7 @@
 	<!-- Default Settings for all Virtual Hosts -->
 	<Defaults>
 		<CrossDomains>
-			<Url>*</Url>
+			<Url>${env:OME_CORS_ALLOWED_ORIGIN:*}</Url>
 		</CrossDomains>
 	</Defaults>
 
@@ -181,7 +181,7 @@
 
 			<!-- Default CORS Settings -->
 			<CrossDomains>
-				<Url>*</Url>
+				<Url>${env:OME_CORS_ALLOWED_ORIGIN:*}</Url>
 			</CrossDomains>
 
 			<!-- Settings for applications -->
@@ -277,7 +277,7 @@
 						<WebRTC>
 							<Timeout>30000</Timeout>
 							<CrossDomains>
-								<Url>*</Url>
+								<Url>${env:OME_CORS_ALLOWED_ORIGIN:*}</Url>
 							</CrossDomains>
 						</WebRTC>
 						<RTMP />
@@ -321,7 +321,7 @@
 								<MaxDuration>86400</MaxDuration>
 							</DVR>
 							<CrossDomains>
-								<Url>*</Url>
+								<Url>${env:OME_CORS_ALLOWED_ORIGIN:*}</Url>
 							</CrossDomains>
 							<CreateDefaultPlaylist>true</CreateDefaultPlaylist> <!-- llhls.m3u8 -->
 						</LLHLS>
@@ -335,7 +335,7 @@
 								<MaxDuration>600</MaxDuration>
 							</DVR> -->
 							<CrossDomains>
-								<Url>*</Url>
+								<Url>${env:OME_CORS_ALLOWED_ORIGIN:*}</Url>
 							</CrossDomains>
 							<CreateDefaultPlaylist>true</CreateDefaultPlaylist> <!-- ts:playlist.m3u8 -->
 						</HLS>
