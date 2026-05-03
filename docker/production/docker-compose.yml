@@ -126,7 +126,7 @@ services:
       - "${ALLOY_BIND_IP}:${ALLOY_HTTP_PORT}:12345"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./observability/alloy:/etc/alloy:ro
       - alloy-data:/var/lib/alloy/data
     networks:
       - default

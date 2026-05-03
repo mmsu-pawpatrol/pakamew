@@ -6,6 +6,7 @@ The deployment flow is split into two modes:
 
 - `docker/production/docker-compose.yml`: builds the production-shaped images locally and is the default file for local testing.
 - `docker/production/docker-compose.registry.yml`: switches `app-server` and `livestream-node` to the GHCR images published by CI for real deployments.
+- `docker/production/docker-compose.cadvisor.yml`: native-Linux-only override that enables cAdvisor-based container metrics for Alloy.
 
 The container build files are grouped in `docker/images/`. This keeps image build inputs separate from runtime stack definitions and makes the distinction between "how we build containers" and "how we run the stack" clearer.
 
@@ -73,7 +74,7 @@ What this does:
 - builds `app-server` and `livestream-node` locally from the Dockerfiles in `docker/images/`
 - starts PostgreSQL, OvenMediaEngine, Traefik, Grafana Alloy, `app-server`, and `livestream-node`
 - keeps container, network, and volume names isolated under the `pakamew-prod` project
-- keeps local file exporters in Alloy while also forwarding Alloy’s unified OTLP pipeline upstream to the configured Grafana endpoint
+- forwards Alloy’s unified OTLP pipeline upstream to the configured Grafana endpoint
 - applies the configured tail-sampling policy before traces are exported
 
 Useful local endpoints with the default `docker/production/.env.example` values:
@@ -95,6 +96,9 @@ Notes for local testing:
 - The livestream gateway serves its test page at `http://127.0.0.1:3000/`.
 - Browser viewers connect through `ws://127.0.0.1:3000/viewer` or `ws://<host-ip>:3000/viewer`.
 - The shelter camera connects through `ws://<host-ip>:3000/esp32-stream`.
+- The default stack does not enable cAdvisor.
+- Docker Desktop’s WSL2 backend should use the default stack only. Grafana’s cAdvisor docs state that Docker Desktop on Windows/macOS runs Docker inside a Linux VM, which prevents direct host monitoring from the Alloy container.
+- Enable cAdvisor only on native Linux hosts by adding `docker/production/docker-compose.cadvisor.yml`.
 
 Validate the fully rendered stack before booting:
 
@@ -102,6 +106,16 @@ Validate the fully rendered stack before booting:
 docker compose \
   --env-file docker/production/.env \
   -f docker/production/docker-compose.yml \
+  config
+```
+
+To validate the native-Linux cAdvisor variant:
+
+```bash
+docker compose \
+  --env-file docker/production/.env \
+  -f docker/production/docker-compose.yml \
+  -f docker/production/docker-compose.cadvisor.yml \
   config
 ```
 
@@ -153,12 +167,14 @@ For a production host that should use the CI-built images instead of rebuilding 
   - registry image tags if you want a pinned release instead of `latest`
 
 4. Ensure `packages/app-server/.env` and `packages/livestream-node/.env` exist on the host.
-5. Start the registry-backed stack:
+5. If the host is native Linux and you want cAdvisor container metrics, include `docker/production/docker-compose.cadvisor.yml`.
+6. Start the registry-backed stack:
 
 ```bash
 docker compose \
   --env-file docker/production/.env \
   -f docker/production/docker-compose.yml \
+  -f docker/production/docker-compose.cadvisor.yml \
   -f docker/production/docker-compose.registry.yml \
   up -d
 ```
@@ -184,9 +200,12 @@ Then apply the updated containers:
 docker compose \
   --env-file docker/production/.env \
   -f docker/production/docker-compose.yml \
+  -f docker/production/docker-compose.cadvisor.yml \
   -f docker/production/docker-compose.registry.yml \
   up -d
 ```
+
+If you do not want cAdvisor on the production host, omit `docker/production/docker-compose.cadvisor.yml`.
 
 ## Notes
 
@@ -197,6 +216,8 @@ docker compose \
   - `discovery.docker` + `loki.source.docker` for container logs
   - `prometheus.scrape` for Traefik metrics
   - `otelcol.receiver.otlp` for app OTLP telemetry
+- Alloy normalizes Docker and Traefik metadata into OTLP resource attributes so Grafana Cloud can group telemetry under stable service names instead of `unknown_service`.
+- The optional cAdvisor override adds `prometheus.exporter.cadvisor`, privileged mode, and the native Linux host mounts required for container metrics.
 - Alloy applies three tail-sampling policies:
   - keep error traces
   - keep high-latency traces

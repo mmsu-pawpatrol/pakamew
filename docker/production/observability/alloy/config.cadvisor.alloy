@@ -13,6 +13,24 @@ discovery.docker "containers" {
   refresh_interval = "5s"
 }
 
+prometheus.exporter.cadvisor "docker" {
+  docker_only = true
+}
+
+discovery.relabel "docker_metrics" {
+  targets = prometheus.exporter.cadvisor.docker.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/docker"
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
 discovery.relabel "docker_logs" {
   targets = []
 
@@ -51,12 +69,17 @@ discovery.relabel "docker_logs" {
   }
 }
 
+prometheus.scrape "docker" {
+  targets    = discovery.relabel.docker_metrics.output
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+}
+
 loki.source.docker "containers" {
-  host          = "unix:///var/run/docker.sock"
-  targets       = discovery.docker.containers.targets
-  labels        = { platform = "docker" }
-  relabel_rules = discovery.relabel.docker_logs.rules
-  forward_to    = [otelcol.receiver.loki.docker.receiver]
+  host             = "unix:///var/run/docker.sock"
+  targets          = discovery.docker.containers.targets
+  labels           = { platform = "docker" }
+  relabel_rules    = discovery.relabel.docker_logs.rules
+  forward_to       = [otelcol.receiver.loki.docker.receiver]
   refresh_interval = "5s"
 }
 
