@@ -166,11 +166,11 @@ await withSpan("orpc.dispatch", () => orpcHandler.handle(request, context), {
 
 - Use observability presets (`debug`, `dev`, `test`, `staging`, `prod`) as the default behavior.
 - Use per-signal environment overrides only when needed for focused debugging or incident response.
-- Keep collector-side tail sampling enabled so error traces preserve full context.
+- Keep production collector-side tail sampling enabled so error traces preserve full context.
 - Workflow:
   - copy one app preset to `packages/app-server/.env` (or set `OBS_PRESET` manually),
-  - copy matching collector preset from `packages/observability/open-telemetry/.env.<preset>.example` to `packages/observability/open-telemetry/.env`,
-  - run `docker compose` so app + collector use matching preset intent.
+  - use the OpenObserve compose stack for lightweight local telemetry,
+  - configure `docker/production/.env` when you need to validate the production Alloy sampling path.
 
 ### PR Checklist (Backend)
 

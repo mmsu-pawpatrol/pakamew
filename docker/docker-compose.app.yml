@@ -3,14 +3,13 @@ name: pakamew
 services:
   postgres:
     image: postgres:17.4
-    container_name: pakamew-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: pakamew
-      POSTGRES_USER: pakamew
-      POSTGRES_PASSWORD: pakamew
+      POSTGRES_DB: ${POSTGRES_DB:-pakamew}
+      POSTGRES_USER: ${POSTGRES_USER:-pakamew}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pakamew}
     ports:
-      - "5432:5432" # PostgreSQL database
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_HOST_PORT:-5432}:5432" # PostgreSQL database
     volumes:
       - pakamew-postgres-data:/var/lib/postgresql/data
     healthcheck:

@@ -1,0 +1,14 @@
+.git
+.github
+.prompts
+.vscode
+.devcontainer
+node_modules
+dist
+.DS_Store
+*.log
+packages/*/node_modules
+packages/*/dist
+packages/*/.env
+packages/*/.env.*
+!packages/*/.env.example

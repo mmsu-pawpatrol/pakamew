@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createRouteTemplateMatcher, joinRouteTemplates, normalizeRouteTemplate } from "./route-templates";
+import {
+	createRouteTemplateMatcher,
+	joinRouteTemplates,
+	normalizeRouteTemplate,
+	selectMostSpecificRouteTemplate,
+} from "./route-templates";
 
 describe("route template utilities", () => {
 	it("normalizes route templates and strips query strings", () => {
@@ -23,5 +28,16 @@ describe("route template utilities", () => {
 		expect(match("GET", "/api/users/list")?.name).toBe("listUsers");
 		expect(match("GET", "/api/users/42")?.name).toBe("userById");
 		expect(match("POST", "/api/users/42")?.name).toBe("wildcard");
+	});
+
+	it("picks the most specific template from overlapping matched routes", () => {
+		const match = selectMostSpecificRouteTemplate([
+			{ method: "ALL", template: "*", name: "rootMiddleware" },
+			{ method: "GET", template: "/api/health", name: "health" },
+			{ method: "ALL", template: "/api/*", name: "rpcCatchAll" },
+		]);
+
+		expect(match?.name).toBe("health");
+		expect(match?.template).toBe("/api/health");
 	});
 });

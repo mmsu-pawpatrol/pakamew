@@ -1,9 +1,20 @@
 import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { auth } from "../../auth";
+import { allowedOrigins } from "../../cors";
 import { BetterAuthInstrumentation } from "../../instrumentation/integrations";
 
 export const routes = new Hono();
+
+routes.use(
+	"/api/auth/*",
+	cors({
+		origin: allowedOrigins,
+		allowMethods: ["GET", "POST", "OPTIONS"],
+		credentials: true,
+	}),
+);
 
 // Better Auth Entrypoint
 routes.on(["GET", "POST"], "/api/auth/*", BetterAuthInstrumentation.middleware({ auth }), (c) =>

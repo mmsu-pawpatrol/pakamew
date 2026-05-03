@@ -1,0 +1,226 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+otelcol.auth.basic "grafana" {
+  username = sys.env("GRAFANA_CLOUD_OTLP_USERNAME")
+  password = sys.env("GRAFANA_CLOUD_OTLP_API_KEY")
+}
+
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+prometheus.exporter.cadvisor "docker" {
+  docker_only = true
+}
+
+discovery.relabel "docker_metrics" {
+  targets = prometheus.exporter.cadvisor.docker.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/docker"
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
+discovery.relabel "docker_logs" {
+  targets = []
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/docker"
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service_name"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+
+  rule {
+    source_labels = ["service_name", "container"]
+    separator     = ";"
+    regex         = "^;(.*)$"
+    replacement   = "$1"
+    target_label  = "service_name"
+  }
+}
+
+prometheus.scrape "docker" {
+  targets    = discovery.relabel.docker_metrics.output
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+}
+
+loki.source.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  targets          = discovery.docker.containers.targets
+  labels           = { platform = "docker" }
+  relabel_rules    = discovery.relabel.docker_logs.rules
+  forward_to       = [otelcol.receiver.loki.docker.receiver]
+  refresh_interval = "5s"
+}
+
+otelcol.receiver.loki "docker" {
+  output {
+    logs = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+discovery.relabel "traefik_metrics" {
+  targets = [{
+    "__address__" = "traefik:8082",
+  }]
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/traefik"
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = constants.hostname
+  }
+}
+
+prometheus.scrape "traefik" {
+  targets    = discovery.relabel.traefik_metrics.output
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+  job_name   = "integrations/traefik"
+}
+
+otelcol.receiver.prometheus "default" {
+  output {
+    metrics = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.transform.service_labels.input]
+    logs    = [otelcol.processor.transform.service_labels.input]
+    traces  = [otelcol.processor.tail_sampling.traces.input]
+  }
+}
+
+otelcol.processor.tail_sampling "traces" {
+  decision_wait               = sys.env("TAIL_SAMPLING_DECISION_WAIT")
+  num_traces                  = encoding.from_json(sys.env("TAIL_SAMPLING_NUM_TRACES"))
+  expected_new_traces_per_sec = encoding.from_json(sys.env("TAIL_SAMPLING_EXPECTED_NEW_TRACES_PER_SEC"))
+
+  policy {
+    name = "keep-error-traces"
+    type = "status_code"
+
+    status_code {
+      status_codes = ["ERROR"]
+    }
+  }
+
+  policy {
+    name = "keep-latency-traces"
+    type = "latency"
+
+    latency {
+      threshold_ms = encoding.from_json(sys.env("TAIL_SAMPLING_LATENCY_THRESHOLD_MS"))
+    }
+  }
+
+  policy {
+    name = "sample-non-error-traces"
+    type = "probabilistic"
+
+    probabilistic {
+      sampling_percentage = encoding.from_json(sys.env("TAIL_SAMPLING_NON_ERROR_PERCENT"))
+    }
+  }
+
+  output {
+    traces = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+otelcol.processor.transform "service_labels" {
+  error_mode = "ignore"
+
+  log_statements {
+    context = "resource"
+    statements = [
+      `set(attributes["service.name"], attributes["service_name"]) where attributes["service.name"] == nil and attributes["service_name"] != nil`,
+      `set(attributes["service.name"], attributes["container"]) where attributes["service.name"] == nil and attributes["container"] != nil`,
+      `set(attributes["service.instance.id"], attributes["container"]) where attributes["service.instance.id"] == nil and attributes["container"] != nil`,
+      `set(attributes["host.name"], attributes["instance"]) where attributes["host.name"] == nil and attributes["instance"] != nil`,
+    ]
+  }
+
+  log_statements {
+    context = "log"
+    statements = [
+      `set(resource.attributes["service.name"], attributes["service_name"]) where resource.attributes["service.name"] == nil and attributes["service_name"] != nil`,
+      `set(resource.attributes["service.name"], attributes["container"]) where resource.attributes["service.name"] == nil and attributes["container"] != nil`,
+      `set(resource.attributes["service.instance.id"], attributes["container"]) where resource.attributes["service.instance.id"] == nil and attributes["container"] != nil`,
+      `set(resource.attributes["host.name"], attributes["instance"]) where resource.attributes["host.name"] == nil and attributes["instance"] != nil`,
+    ]
+  }
+
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      `set(resource.attributes["service.name"], "traefik") where resource.attributes["service.name"] == nil and attributes["job"] == "integrations/traefik"`,
+      `set(resource.attributes["service.name"], "docker") where resource.attributes["service.name"] == nil and attributes["job"] == "integrations/docker"`,
+      `set(resource.attributes["service.instance.id"], attributes["instance"]) where resource.attributes["service.instance.id"] == nil and attributes["instance"] != nil`,
+      `set(resource.attributes["host.name"], attributes["instance"]) where resource.attributes["host.name"] == nil and attributes["instance"] != nil`,
+    ]
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.grafana.input]
+    logs    = [otelcol.exporter.otlphttp.grafana.input]
+    traces  = [otelcol.exporter.otlphttp.grafana.input]
+  }
+}
+
+otelcol.exporter.otlphttp "grafana" {
+  client {
+    endpoint = sys.env("GRAFANA_CLOUD_OTLP_ENDPOINT")
+    auth     = otelcol.auth.basic.grafana.handler
+  }
+}

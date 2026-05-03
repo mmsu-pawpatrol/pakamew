@@ -80,6 +80,7 @@
 			"@prisma/engines",
 			"@serialport/bindings-cpp",
 			"better-sqlite3",
+			"core-js",
 			"esbuild",
 			"msw",
 			"prisma",

@@ -4,12 +4,18 @@ const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
 const path = require("path");
+const { createCorsMiddleware, parseAllowedOrigins, verifyWebSocketOrigin } = require("./cors");
 const { SerialPort } = require("serialport");
 const { DelimiterParser } = require("@serialport/parser-delimiter");
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server, perMessageDeflate: false });
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS);
+const wss = new WebSocket.Server({
+	server,
+	perMessageDeflate: false,
+	verifyClient: (info) => verifyWebSocketOrigin(info, allowedOrigins),
+});
 
 const USB_PORT = "COM7";
 const BAUD_RATE = 1000000; //matches ESP32 exactly!
@@ -22,7 +28,9 @@ const port = new SerialPort({
 
 const parser = port.pipe(new DelimiterParser({ delimiter: "\n--FRAME--\n" }));
 
+app.use(createCorsMiddleware(allowedOrigins));
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 wss.on("connection", (ws, req) => {
 	console.log("👁️ Viewer Connected");
