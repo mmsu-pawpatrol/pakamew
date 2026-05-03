@@ -6,7 +6,7 @@ import { $ESCALATE } from "../../core/constants";
 import { getLogger } from "../../core/logger";
 import { recordHttpRequestMetrics, recordOrpcMetrics } from "../../core/metrics";
 import { HttpInstrumentation } from "../http";
-import { applyOrpcRouteMetadata, type OrpcRouteMetadataCarrier } from "./metadata-carrier";
+import { applyOrpcRouteMetadata } from "./metadata-carrier";
 import { createOrpcFallbackRouteMetadata, resolveOrpcHttpRouteTemplate } from "./route-template";
 import {
 	clearOrpcInstrumentationState,
@@ -166,7 +166,7 @@ export const OrpcInstrumentation: OrpcInstrumentationApi = {
 	 */
 	clientInterceptor(): NonNullable<StandardHandlerOptions<Context>["clientInterceptors"]>[number] {
 		return async (options) => {
-			applyOrpcRouteMetadata(options.context as OrpcRouteMetadataCarrier, options.procedure, options.path);
+			applyOrpcRouteMetadata(options.context, options.procedure, options.path);
 			return options.next();
 		};
 	},

@@ -22,7 +22,7 @@ export function queryEnvFromSchema(
 	const shape = injectKeys(schema.shape);
 	const query = select(shape) as readonly z.ZodTypeAny[];
 	const slice = buildSliceShape(query);
-	return z.object(slice as z.ZodRawShape).parse(source);
+	return z.object(slice).parse(source);
 }
 
 /**
