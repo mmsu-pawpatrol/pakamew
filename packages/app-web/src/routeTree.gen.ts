@@ -17,6 +17,7 @@ import { Route as LivestreamIndexRouteImport } from './routes/livestream/index'
 import { Route as DonateIndexRouteImport } from './routes/donate/index'
 import { Route as DonateSuccessRouteImport } from './routes/donate/success'
 import { Route as Char91_demoChar93LivestreamRouteImport } from './routes/[_demo]/livestream'
+import { Route as Char91_demoChar93DispenserControlRouteImport } from './routes/[_demo]/dispenser-control'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -59,12 +60,19 @@ const Char91_demoChar93LivestreamRoute =
     path: '/livestream',
     getParentRoute: () => Char91_demoChar93RouteRoute,
   } as any)
+const Char91_demoChar93DispenserControlRoute =
+  Char91_demoChar93DispenserControlRouteImport.update({
+    id: '/dispenser-control',
+    path: '/dispenser-control',
+    getParentRoute: () => Char91_demoChar93RouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
   '/donate/': typeof DonateIndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
   '/donate': typeof DonateIndexRoute
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
   '/donate/': typeof DonateIndexRoute
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/_demo'
     | '/donate'
     | '/profile'
+    | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
     | '/donate/'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_demo'
     | '/profile'
+    | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
     | '/donate'
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/_demo'
     | '/donate'
     | '/profile'
+    | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
     | '/donate/'
@@ -188,15 +201,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91_demoChar93LivestreamRouteImport
       parentRoute: typeof Char91_demoChar93RouteRoute
     }
+    '/_demo/dispenser-control': {
+      id: '/_demo/dispenser-control'
+      path: '/dispenser-control'
+      fullPath: '/_demo/dispenser-control'
+      preLoaderRoute: typeof Char91_demoChar93DispenserControlRouteImport
+      parentRoute: typeof Char91_demoChar93RouteRoute
+    }
   }
 }
 
 interface Char91_demoChar93RouteRouteChildren {
+  Char91_demoChar93DispenserControlRoute: typeof Char91_demoChar93DispenserControlRoute
   Char91_demoChar93LivestreamRoute: typeof Char91_demoChar93LivestreamRoute
 }
 
 const Char91_demoChar93RouteRouteChildren: Char91_demoChar93RouteRouteChildren =
   {
+    Char91_demoChar93DispenserControlRoute:
+      Char91_demoChar93DispenserControlRoute,
     Char91_demoChar93LivestreamRoute: Char91_demoChar93LivestreamRoute,
   }
 

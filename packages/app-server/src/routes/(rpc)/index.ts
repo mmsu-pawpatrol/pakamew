@@ -8,10 +8,12 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { Hono } from "hono";
 import { $ESCALATE, config, getLogger } from "../../instrumentation/core";
 import { OrpcInstrumentation } from "../../instrumentation/integrations";
+import { feeder } from "./feeder";
 import { ping } from "./ping";
 
 // Root Router
 export const router = {
+	feeder,
 	ping,
 };
 

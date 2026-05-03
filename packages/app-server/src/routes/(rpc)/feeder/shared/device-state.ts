@@ -1,0 +1,118 @@
+import type {
+	FeederCommandSummary,
+	FeederDeviceMessage,
+	FeederStatus,
+	FeederTarget,
+	FeederTriggerInput,
+	FeederTriggerResponse,
+} from "./contracts";
+
+interface CachedDeviceSnapshot {
+	state: FeederStatus["latestKnownDeviceState"]["state"];
+	busy: boolean;
+	timestamp: number | null;
+	mode: FeederStatus["latestKnownDeviceState"]["mode"];
+	angle: number | null;
+	openDurationMs: number | null;
+	message: string | null;
+	source: FeederStatus["latestKnownDeviceState"]["source"];
+}
+
+const currentDeviceSnapshot: CachedDeviceSnapshot = {
+	state: "unknown",
+	busy: false,
+	timestamp: null,
+	mode: null,
+	angle: null,
+	openDurationMs: null,
+	message: null,
+	source: null,
+};
+
+let lastCommandSummary: FeederCommandSummary | null = null;
+
+function toNullableAngle(command: FeederTriggerInput) {
+	return command.mode === "angle" ? command.angle : null;
+}
+
+function toNullableOpenDuration(command: FeederTriggerInput) {
+	return command.mode === "duration" ? command.openDurationMs : null;
+}
+
+export function recordTriggerResult(response: FeederTriggerResponse) {
+	lastCommandSummary = {
+		requestId: response.requestId,
+		mode: response.command.mode,
+		angle: toNullableAngle(response.command),
+		openDurationMs: toNullableOpenDuration(response.command),
+		result: response.result,
+		acknowledgementState: response.acknowledgementState,
+		submittedAt: response.requestedAt,
+		respondedAt: response.respondedAt,
+		message: response.message,
+	};
+}
+
+export function recordDeviceMessage(source: "status" | "events", message: FeederDeviceMessage) {
+	currentDeviceSnapshot.state = message.state;
+	currentDeviceSnapshot.busy = message.busy;
+	currentDeviceSnapshot.timestamp = message.timestamp;
+	currentDeviceSnapshot.mode = message.mode ?? null;
+	currentDeviceSnapshot.angle = message.angle ?? null;
+	currentDeviceSnapshot.openDurationMs = message.openDurationMs ?? null;
+	currentDeviceSnapshot.message = message.message ?? null;
+	currentDeviceSnapshot.source = source;
+
+	if (!lastCommandSummary) {
+		return;
+	}
+
+	if (!message.requestId || message.requestId !== lastCommandSummary.requestId) {
+		return;
+	}
+
+	lastCommandSummary = {
+		...lastCommandSummary,
+		acknowledgementState: message.state,
+		respondedAt: message.timestamp,
+		message: message.message ?? lastCommandSummary.message,
+		result: message.state === "busy" ? "busy" : message.state === "accepted" ? "accepted" : lastCommandSummary.result,
+	};
+}
+
+export function buildFeederStatus(params: {
+	target: FeederTarget;
+	brokerUrl: string;
+	brokerConnected: boolean;
+	ackTimeoutMs: number;
+}): FeederStatus {
+	return {
+		deviceId: params.target.deviceId,
+		broker: {
+			url: params.brokerUrl,
+			connected: params.brokerConnected,
+			commandTopic: params.target.commandTopic,
+			statusTopic: params.target.statusTopic,
+			eventsTopic: params.target.eventsTopic,
+		},
+		latestKnownDeviceState: { ...currentDeviceSnapshot },
+		lastCommand: lastCommandSummary,
+		limits: {
+			angle: {
+				min: 1,
+				max: 360,
+				default: 180,
+			},
+			duration: {
+				min: 200,
+				max: 30000,
+				default: 1000,
+			},
+			ackTimeoutMs: params.ackTimeoutMs,
+			modes: {
+				angle: true,
+				duration: true,
+			},
+		},
+	};
+}
