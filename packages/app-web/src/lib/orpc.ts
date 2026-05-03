@@ -6,6 +6,7 @@ import { createContext, use } from "react";
 
 export const link = new RPCLink({
 	url: `${env.VITE_API_URL}/api`,
+	fetch: (input, init) => fetch(input, { ...init, credentials: "include" }),
 });
 
 export type ORPCTanstackQueryUtils = ReturnType<typeof createTanstackQueryUtils<RPCRouterClient>>;
