@@ -57,12 +57,6 @@ docker compose \
   -f docker/docker-compose.app.yml \
   -f docker/docker-compose.otel-openobserve.yml \
   up -d
-
-# Full local observability
-docker compose \
-  -f docker/docker-compose.app.yml \
-  -f docker/docker-compose.otel-lgtm.yml \
-  up -d
 ```
 
 Generate Prisma client and apply schema changes to the local database:

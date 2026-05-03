@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Spinner } from "@/components/ui/spinner";
-import { RefreshCwIcon } from "lucide-react";
+import { RadioIcon, RefreshCwIcon } from "lucide-react";
 
-export type LivestreamStatusOverlayMode = "connecting" | "connected" | "offline" | "error" | "paused";
+export type LivestreamStatusOverlayMode = "no-source" | "offline" | "error";
 
 export interface LivestreamStatusOverlayProps {
 	mode: LivestreamStatusOverlayMode;
@@ -11,49 +10,33 @@ export interface LivestreamStatusOverlayProps {
 }
 
 const OVERLAY_COPY: Record<LivestreamStatusOverlayMode, { title: string; description: string }> = {
-	connecting: {
-		title: "Connecting to live feed...",
-		description: "Preparing livestream session.",
+	"no-source": {
+		title: "No playable livestream source",
+		description: "Configure an HLS URL or enable the websocket source to preview frames.",
 	},
-	connected: {
-		title: "Connected to livestream server",
-		description: "Waiting for camera feed ...",
+	"error": {
+		title: "Playback error",
+		description: "Retry the active source to remount the player surface.",
 	},
-	offline: {
-		title: "Live feed unavailable",
-		description: "The stream is currently offline. Retry when ready.",
-	},
-	error: {
-		title: "Stream connection error",
-		description: "A connection issue occurred. Retry to reconnect.",
-	},
-	paused: {
-		title: "Paused",
-		description: "Activate this player to resume live playback.",
+	"offline": {
+		title: "Livestream offline",
+		description: "The active livestream source is currently unavailable. Retry once the stream is back.",
 	},
 };
 
 export function LivestreamStatusOverlay({ mode, onRetry }: LivestreamStatusOverlayProps) {
 	const copy = OVERLAY_COPY[mode];
-	const canRetry = (mode === "offline" || mode === "error") && typeof onRetry === "function";
+	const canRetry = (mode === "error" || mode === "offline") && typeof onRetry === "function";
 
 	return (
 		<div className="absolute inset-0">
-			<img
-				src="/mr-fresh.jpg"
-				alt=""
-				aria-hidden
-				className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-100"
-			/>
-			<Empty className="relative h-full rounded-none border-0 bg-black/80 p-6 backdrop-blur-xs">
+			<Empty className="relative h-full rounded-none border-0 bg-black/80 p-6 text-white backdrop-blur-xs">
 				<EmptyHeader>
-					{mode === "connecting" || mode === "connected" ? (
-						<EmptyMedia
-							variant="icon"
-							className="border-white/15 bg-white/10 text-white [&_svg:not([class*='size-'])]:size-5">
-							<Spinner className="text-white" />
-						</EmptyMedia>
-					) : null}
+					<EmptyMedia
+						variant="icon"
+						className="border-white/15 bg-white/10 text-white [&_svg:not([class*='size-'])]:size-5">
+						<RadioIcon className={mode === "error" ? "" : "opacity-75"} />
+					</EmptyMedia>
 					<EmptyTitle className="text-white">{copy.title}</EmptyTitle>
 					<EmptyDescription className="text-white/80">{copy.description}</EmptyDescription>
 				</EmptyHeader>

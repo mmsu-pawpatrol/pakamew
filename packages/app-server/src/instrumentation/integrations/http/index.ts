@@ -1,7 +1,22 @@
 import { httpInstrumentationMiddleware } from "@hono/otel";
-import { routePath } from "hono/route";
+import type { Context, MiddlewareHandler } from "hono";
+import { matchedRoutes, routePath } from "hono/route";
 import { config } from "../../core";
+import { selectMostSpecificRouteTemplate } from "../utils/route-templates";
 import { resolveSpanName, writeSpanNameOverride, type HttpSpanName } from "./span-name";
+
+const EXCLUDED_TRACE_PATHS = new Set(["/api/health"]);
+
+function resolveFallbackRouteTemplate(c: Context): string {
+	const matchedRoute = selectMostSpecificRouteTemplate(
+		matchedRoutes(c).map((route) => ({
+			method: route.method,
+			template: route.path,
+		})),
+	);
+
+	return matchedRoute?.template ?? routePath(c, -1) ?? routePath(c) ?? "/*";
+}
 
 /**
  * HTTP instrumentation helpers for request middleware registration and
@@ -12,7 +27,7 @@ export const HttpInstrumentation = {
 	 * Hono middleware that wires OpenTelemetry HTTP instrumentation and span naming.
 	 */
 	middleware() {
-		return httpInstrumentationMiddleware({
+		const instrument: MiddlewareHandler = httpInstrumentationMiddleware({
 			captureActiveRequests: true,
 			serviceName: config.otel?.OTEL_SERVICE_NAME,
 			serviceVersion: config.otel?.OTEL_SERVICE_VERSION,
@@ -21,13 +36,23 @@ export const HttpInstrumentation = {
 				// worst-case scenario, use "/*" as template
 				const fallback = {
 					method: c.req.method,
-					template: routePath(c, -1) || routePath(c) || "/*",
+					template: resolveFallbackRouteTemplate(c),
 				} satisfies HttpSpanName;
 
 				const spanName = resolveSpanName(c.req.raw, fallback);
 				return spanName;
 			},
 		});
+
+		return (async (c, next) => {
+			const pathname = new URL(c.req.url).pathname;
+			if (EXCLUDED_TRACE_PATHS.has(pathname)) {
+				await next();
+				return;
+			}
+
+			return instrument(c, next);
+		}) satisfies MiddlewareHandler;
 	},
 
 	/**

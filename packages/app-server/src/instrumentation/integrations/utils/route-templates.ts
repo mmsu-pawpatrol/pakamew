@@ -57,6 +57,7 @@ function escapeRegexSegment(segment: string): string {
  */
 function normalizeMethod(method: string): string {
 	const normalized = method.trim().toUpperCase();
+	if (normalized === "ALL") return "*";
 	return normalized || "*";
 }
 
@@ -154,16 +155,8 @@ function computeSpecificity(template: string): number {
 	}, 0);
 }
 
-/**
- * @internal
- * Creates a route template matcher from a list of candidates.
- * @param candidates - The candidates to create the route template matcher from.
- * @returns The route template matcher.
- */
-export function createRouteTemplateMatcher(
-	candidates: readonly RouteTemplateCandidate[],
-): (method: string, pathname: string) => RouteTemplateMatch | undefined {
-	const entries: RouteTemplateMatcherEntry[] = candidates.map((candidate) => {
+function toMatcherEntries(candidates: readonly RouteTemplateCandidate[]): RouteTemplateMatcherEntry[] {
+	return candidates.map((candidate) => {
 		const method = normalizeMethod(candidate.method);
 		const template = normalizeRouteTemplate(candidate.template);
 		return {
@@ -174,14 +167,45 @@ export function createRouteTemplateMatcher(
 			score: computeSpecificity(template),
 		};
 	});
+}
 
-	entries.sort((left, right) => {
-		const leftMethodPriority = left.method === "*" ? 0 : 1;
-		const rightMethodPriority = right.method === "*" ? 0 : 1;
-		if (leftMethodPriority !== rightMethodPriority) return rightMethodPriority - leftMethodPriority;
-		if (left.score !== right.score) return right.score - left.score;
-		return right.template.length - left.template.length;
-	});
+function compareMatcherEntries(left: RouteTemplateMatcherEntry, right: RouteTemplateMatcherEntry): number {
+	const leftMethodPriority = left.method === "*" ? 0 : 1;
+	const rightMethodPriority = right.method === "*" ? 0 : 1;
+	if (leftMethodPriority !== rightMethodPriority) return rightMethodPriority - leftMethodPriority;
+	if (left.score !== right.score) return right.score - left.score;
+	return right.template.length - left.template.length;
+}
+
+/**
+ * @internal
+ * Picks the most specific route template from a set of already matched candidates.
+ * @param candidates - Matched route candidates ordered arbitrarily.
+ * @returns The most specific matched route template when available.
+ */
+export function selectMostSpecificRouteTemplate(
+	candidates: readonly RouteTemplateCandidate[],
+): RouteTemplateMatch | undefined {
+	const [match] = toMatcherEntries(candidates).sort(compareMatcherEntries);
+	if (!match) return undefined;
+
+	return {
+		method: match.method,
+		template: match.template,
+		name: match.name,
+	};
+}
+
+/**
+ * @internal
+ * Creates a route template matcher from a list of candidates.
+ * @param candidates - The candidates to create the route template matcher from.
+ * @returns The route template matcher.
+ */
+export function createRouteTemplateMatcher(
+	candidates: readonly RouteTemplateCandidate[],
+): (method: string, pathname: string) => RouteTemplateMatch | undefined {
+	const entries = toMatcherEntries(candidates).sort(compareMatcherEntries);
 
 	/**
 	 * @internal
