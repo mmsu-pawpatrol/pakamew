@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createGetEnv } from "@pakamew/shared/utils/get-env";
 import z from "zod";
 import { CoreEnvSchema, type CoreEnv } from "./core";
+import { FeederEnvSchema, type FeederEnv } from "./feeder";
 import {
 	ObservabilityEnvSchema,
 	ObservabilitySwitchesEnvSchema,
@@ -10,10 +11,11 @@ import {
 } from "./observability";
 import { OtelEnvSchema, type OtelEnv } from "./otel";
 
-export interface Env extends CoreEnv, OtelEnv, ObservabilityEnv, ObservabilitySwitchesEnv {}
+export interface Env extends CoreEnv, FeederEnv, OtelEnv, ObservabilityEnv, ObservabilitySwitchesEnv {}
 
 export const EnvSchema = z.object({
 	...CoreEnvSchema.shape,
+	...FeederEnvSchema.shape,
 	...OtelEnvSchema.shape,
 	...ObservabilityEnvSchema.shape,
 	...ObservabilitySwitchesEnvSchema.shape,
