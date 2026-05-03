@@ -43,6 +43,13 @@ const gateway = createNormalizedLivestreamGateway({
 	targetOutputFps: gatewayConfig.targetOutputFps,
 });
 
+app.get("/health", (_req, res) => {
+	res.json({
+		status: "ok",
+		omeForwardingEnabled: ENABLE_OME_FORWARD,
+	});
+});
+
 wss.on("connection", (ws, req) => {
 	const url = req.url;
 

@@ -3,17 +3,16 @@ name: pakamew
 services:
   ovenmediaengine:
     image: airensoft/ovenmediaengine:v0.20.0
-    container_name: pakamew-ovenmediaengine
     restart: unless-stopped
     environment:
       OME_HOST_IP: ${OME_HOST_IP:-127.0.0.1}
     ports:
-      - "1935:1935" # RTMP ingest
-      - "9999:9999/udp" # SRT ingest
-      - "9000:9000" # Origin server (OVT)
-      - "3333:3333" # LLHLS/WebRTC signaling
-      - "3478:3478" # WebRTC TCP relay (TURN)
-      - "10000-10009:10000-10009/udp" # WebRTC ICE candidates
+      - "${OME_RTMP_BIND_IP:-0.0.0.0}:${OME_RTMP_HOST_PORT:-1935}:1935" # RTMP ingest
+      - "${OME_SRT_BIND_IP:-0.0.0.0}:${OME_SRT_HOST_PORT:-9999}:9999/udp" # SRT ingest
+      - "${OME_OVT_BIND_IP:-0.0.0.0}:${OME_OVT_HOST_PORT:-9000}:9000" # Origin server (OVT)
+      - "${OME_SIGNAL_BIND_IP:-0.0.0.0}:${OME_SIGNAL_HOST_PORT:-3333}:3333" # LLHLS/WebRTC signaling
+      - "${OME_TURN_BIND_IP:-0.0.0.0}:${OME_TURN_HOST_PORT:-3478}:3478" # WebRTC TCP relay (TURN)
+      - "${OME_ICE_BIND_IP:-0.0.0.0}:${OME_ICE_HOST_START_PORT:-10000}-${OME_ICE_HOST_END_PORT:-10009}:10000-10009/udp" # WebRTC ICE candidates
     volumes:
       - ./ovenmediaengine/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
       - pakamew-ome-edge-conf:/opt/ovenmediaengine/bin/edge_conf

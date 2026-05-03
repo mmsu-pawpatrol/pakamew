@@ -1,0 +1,140 @@
+name: pakamew-prod
+
+include:
+  - ../docker-compose.app.yml
+  - ../docker-compose.ovenmediaengine.yml
+
+services:
+  app-server:
+    build:
+      context: ../..
+      dockerfile: docker/images/app-server.Dockerfile
+    image: ${APP_SERVER_IMAGE}
+    pull_policy: build
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      alloy:
+        condition: service_started
+    env_file:
+      - path: ../../packages/app-server/.env
+        required: true
+    environment:
+      HOST: ${APP_SERVER_HOST}
+      PORT: ${APP_SERVER_PORT}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${APP_SERVER_DATABASE_HOST}:${APP_SERVER_DATABASE_PORT}/${POSTGRES_DB}?schema=${APP_SERVER_DATABASE_SCHEMA}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://${APP_SERVER_OTEL_HOST}:${APP_SERVER_OTEL_PORT}
+      OTEL_DEPLOYMENT_ENVIRONMENT: ${APP_SERVER_OTEL_DEPLOYMENT_ENVIRONMENT}
+    expose:
+      - "${APP_SERVER_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:${APP_SERVER_PORT}/api/health').then((response)=>{if(!response.ok)process.exit(1);}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: pakamew-prod-edge
+      traefik.http.routers.app-server.entrypoints: appserver
+      traefik.http.routers.app-server.rule: PathPrefix(`/`)
+      traefik.http.services.app-server.loadbalancer.server.port: "${APP_SERVER_PORT}"
+    networks:
+      - default
+      - edge
+
+  livestream-node:
+    build:
+      context: ../..
+      dockerfile: docker/images/livestream-node.Dockerfile
+    image: ${LIVESTREAM_NODE_IMAGE}
+    pull_policy: build
+    restart: unless-stopped
+    depends_on:
+      ovenmediaengine:
+        condition: service_started
+    env_file:
+      - path: ../../packages/livestream-node/.env
+        required: true
+    environment:
+      PORT: ${LIVESTREAM_NODE_PORT}
+      LIVESTREAM_NODE_SCRIPT: ${LIVESTREAM_NODE_SCRIPT}
+      OME_RTMP_URL: rtmp://${OME_RTMP_HOST}:${OME_RTMP_PORT}/${OME_RTMP_APPLICATION}/${OME_RTMP_STREAM_KEY}
+    expose:
+      - "${LIVESTREAM_NODE_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:${LIVESTREAM_NODE_PORT}/health').then((response)=>{if(!response.ok)process.exit(1);}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: pakamew-prod-edge
+      traefik.http.routers.livestream-node.entrypoints: livestream
+      traefik.http.routers.livestream-node.rule: PathPrefix(`/`)
+      traefik.http.services.livestream-node.loadbalancer.server.port: "${LIVESTREAM_NODE_PORT}"
+    networks:
+      - default
+      - edge
+
+  traefik:
+    image: ${TRAEFIK_IMAGE}
+    restart: unless-stopped
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "${TRAEFIK_HTTP_BIND_IP}:${TRAEFIK_HTTP_PORT}:80"
+      - "${TRAEFIK_HTTPS_BIND_IP}:${TRAEFIK_HTTPS_PORT}:443"
+      - "${TRAEFIK_APP_SERVER_BIND_IP}:${TRAEFIK_APP_SERVER_PORT}:3001"
+      - "${TRAEFIK_LIVESTREAM_BIND_IP}:${TRAEFIK_LIVESTREAM_PORT}:3000"
+      - "${TRAEFIK_DASHBOARD_BIND_IP}:${TRAEFIK_DASHBOARD_PORT}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - edge
+
+  alloy:
+    image: ${GRAFANA_ALLOY_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - path: ./.env
+        required: true
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    expose:
+      - "${APP_SERVER_OTEL_GRPC_PORT}"
+      - "${APP_SERVER_OTEL_PORT}"
+    ports:
+      - "${ALLOY_BIND_IP}:${ALLOY_HTTP_PORT}:12345"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+    networks:
+      - default
+      - edge
+
+networks:
+  edge:
+    name: pakamew-prod-edge
+
+volumes:
+  alloy-data:

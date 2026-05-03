@@ -1,0 +1,8 @@
+services:
+  app-server:
+    image: ${APP_SERVER_REGISTRY_IMAGE}
+    pull_policy: always
+
+  livestream-node:
+    image: ${LIVESTREAM_NODE_REGISTRY_IMAGE}
+    pull_policy: always

@@ -1,0 +1,169 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+otelcol.auth.basic "grafana" {
+  username = sys.env("GRAFANA_CLOUD_OTLP_USERNAME")
+  password = sys.env("GRAFANA_CLOUD_OTLP_API_KEY")
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service_name"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container_name"
+  }
+
+  rule {
+    source_labels = ["service_name", "container_name"]
+    separator     = ";"
+    regex         = "^;(.*)$"
+    replacement   = "$1"
+    target_label  = "service_name"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  labels        = { job = "docker" }
+  relabel_rules = discovery.relabel.docker_logs.rules
+  forward_to    = [otelcol.receiver.loki.docker.receiver]
+}
+
+otelcol.receiver.loki "docker" {
+  output {
+    logs = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+prometheus.scrape "traefik" {
+  targets = [
+    {
+      "__address__" = "traefik:8082",
+      "instance"    = "traefik",
+      "job"         = "traefik",
+    },
+  ]
+
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+}
+
+otelcol.receiver.prometheus "default" {
+  output {
+    metrics = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.transform.service_labels.input]
+    logs    = [otelcol.processor.transform.service_labels.input]
+    traces  = [otelcol.processor.tail_sampling.traces.input]
+  }
+}
+
+otelcol.processor.tail_sampling "traces" {
+  decision_wait               = sys.env("TAIL_SAMPLING_DECISION_WAIT")
+  num_traces                  = encoding.from_json(sys.env("TAIL_SAMPLING_NUM_TRACES"))
+  expected_new_traces_per_sec = encoding.from_json(sys.env("TAIL_SAMPLING_EXPECTED_NEW_TRACES_PER_SEC"))
+
+  policy {
+    name = "keep-error-traces"
+    type = "status_code"
+
+    status_code {
+      status_codes = ["ERROR"]
+    }
+  }
+
+  policy {
+    name = "keep-latency-traces"
+    type = "latency"
+
+    latency {
+      threshold_ms = encoding.from_json(sys.env("TAIL_SAMPLING_LATENCY_THRESHOLD_MS"))
+    }
+  }
+
+  policy {
+    name = "sample-non-error-traces"
+    type = "probabilistic"
+
+    probabilistic {
+      sampling_percentage = encoding.from_json(sys.env("TAIL_SAMPLING_NON_ERROR_PERCENT"))
+    }
+  }
+
+  output {
+    traces = [otelcol.processor.transform.service_labels.input]
+  }
+}
+
+otelcol.processor.transform "service_labels" {
+  error_mode = "ignore"
+
+  log_statements {
+    context = "resource"
+    statements = [
+      `set(attributes["service.name"], attributes["service_name"]) where attributes["service.name"] == nil and attributes["service_name"] != nil`,
+      `set(attributes["service.name"], attributes["container_name"]) where attributes["service.name"] == nil and attributes["container_name"] != nil`,
+    ]
+  }
+
+  log_statements {
+    context = "log"
+    statements = [
+      `set(resource.attributes["service.name"], attributes["service_name"]) where resource.attributes["service.name"] == nil and attributes["service_name"] != nil`,
+      `set(resource.attributes["service.name"], attributes["container_name"]) where resource.attributes["service.name"] == nil and attributes["container_name"] != nil`,
+    ]
+  }
+
+  metric_statements {
+    context = "resource"
+    statements = [
+      `set(attributes["service.name"], "traefik") where attributes["service.name"] == nil and attributes["job"] == "traefik"`,
+    ]
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.grafana.input]
+    logs    = [otelcol.exporter.otlphttp.grafana.input]
+    traces  = [otelcol.exporter.otlphttp.grafana.input]
+  }
+}
+
+otelcol.exporter.otlphttp "grafana" {
+  client {
+    endpoint = sys.env("GRAFANA_CLOUD_OTLP_ENDPOINT")
+    auth     = otelcol.auth.basic.grafana.handler
+  }
+}

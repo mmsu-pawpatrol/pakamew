@@ -23,6 +23,7 @@ const port = new SerialPort({
 const parser = port.pipe(new DelimiterParser({ delimiter: "\n--FRAME--\n" }));
 
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 wss.on("connection", (ws, req) => {
 	console.log("👁️ Viewer Connected");
