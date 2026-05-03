@@ -66,7 +66,7 @@ function ensureOrpcInstrumentationState(request: Request): OrpcInstrumentationSt
 	const requestRecord = getRequestRecord(request);
 	const rawValue = requestRecord[ORPC_INSTRUMENTATION_STATE_CONTEXT_KEY];
 	if (rawValue && typeof rawValue === "object") {
-		return rawValue as OrpcInstrumentationState;
+		return rawValue;
 	}
 
 	const state: OrpcInstrumentationState = {};
@@ -81,7 +81,7 @@ function ensureOrpcInstrumentationState(request: Request): OrpcInstrumentationSt
  */
 export function readOrpcInstrumentationState(request: Request): OrpcInstrumentationState | undefined {
 	const rawValue = getRequestRecord(request)[ORPC_INSTRUMENTATION_STATE_CONTEXT_KEY];
-	return rawValue && typeof rawValue === "object" ? (rawValue as OrpcInstrumentationState) : undefined;
+	return rawValue && typeof rawValue === "object" ? rawValue : undefined;
 }
 
 /**
