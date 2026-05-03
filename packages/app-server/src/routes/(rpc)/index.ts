@@ -9,10 +9,12 @@ import { Hono } from "hono";
 import { allowedOrigins } from "../../cors";
 import { $ESCALATE, config, getLogger } from "../../instrumentation/core";
 import { OrpcInstrumentation } from "../../instrumentation/integrations";
+import { feeder } from "./feeder";
 import { ping } from "./ping";
 
 // Root Router
 export const router = {
+	feeder,
 	ping,
 };
 
