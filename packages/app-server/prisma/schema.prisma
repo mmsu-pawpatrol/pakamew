@@ -29,31 +29,34 @@ enum DispenseStatus {
 }
 
 model Donation {
-  id                     String           @id @default(uuid())
+  id                     String            @id @default(uuid())
+  userId                 String?
+  user                   Users?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   name                   String?
   amount                 Int
-  currency               String           @default("PHP")
-  status                 DonationStatus   @default(PENDING)
-  dispenseStatus         DispenseStatus   @default(NOT_STARTED)
-  xenditReferenceId      String           @unique
-  xenditPaymentSessionId String?          @unique
+  currency               String            @default("PHP")
+  status                 DonationStatus    @default(PENDING)
+  dispenseStatus         DispenseStatus    @default(NOT_STARTED)
+  xenditReferenceId      String            @unique
+  xenditPaymentSessionId String?           @unique
   xenditPaymentRequestId String?
   xenditPaymentId        String?
   paymentLinkUrl         String?
   expiresAt              DateTime?
   paidAt                 DateTime?
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
   dispenseAttempts       DispenseAttempt[]
 
   @@index([status, dispenseStatus])
+  @@index([userId, createdAt])
 }
 
 model DispenseAttempt {
-  id                   String   @id @default(uuid())
+  id                   String    @id @default(uuid())
   donationId           String
-  donation             Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
-  requestId            String   @unique
+  donation             Donation  @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  requestId            String    @unique
   openDurationMs       Int
   result               String
   acknowledgementState String?
@@ -61,8 +64,8 @@ model DispenseAttempt {
   requestedAt          DateTime
   respondedAt          DateTime?
   completedAt          DateTime?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@index([donationId, createdAt])
 }
@@ -77,6 +80,7 @@ model Users {
   updatedAt     DateTime   @updatedAt
   sessions      Sessions[]
   accounts      Accounts[]
+  donations     Donation[]
 
   role        String?
   banned      Boolean?  @default(false)

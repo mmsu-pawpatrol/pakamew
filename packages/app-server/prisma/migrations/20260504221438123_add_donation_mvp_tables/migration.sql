@@ -11,6 +11,7 @@ CREATE TYPE "DispenseStatus" AS ENUM (
 
 CREATE TABLE "Donation" (
 	"id" TEXT NOT NULL,
+	"userId" TEXT,
 	"name" TEXT,
 	"amount" INTEGER NOT NULL,
 	"currency" TEXT NOT NULL DEFAULT 'PHP',
@@ -49,9 +50,13 @@ CREATE TABLE "DispenseAttempt" (
 CREATE UNIQUE INDEX "Donation_xenditReferenceId_key" ON "Donation"("xenditReferenceId");
 CREATE UNIQUE INDEX "Donation_xenditPaymentSessionId_key" ON "Donation"("xenditPaymentSessionId");
 CREATE INDEX "Donation_status_dispenseStatus_idx" ON "Donation"("status", "dispenseStatus");
+CREATE INDEX "Donation_userId_createdAt_idx" ON "Donation"("userId", "createdAt");
 
 CREATE UNIQUE INDEX "DispenseAttempt_requestId_key" ON "DispenseAttempt"("requestId");
 CREATE INDEX "DispenseAttempt_donationId_createdAt_idx" ON "DispenseAttempt"("donationId", "createdAt");
 
 ALTER TABLE "DispenseAttempt"
 ADD CONSTRAINT "DispenseAttempt_donationId_fkey" FOREIGN KEY ("donationId") REFERENCES "Donation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "Donation"
+ADD CONSTRAINT "Donation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
