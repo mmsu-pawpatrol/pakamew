@@ -6,7 +6,6 @@ dist
 !.env.*.example
 generated
 .tanstack
-packages/app-web/src/lib/orpc-contract.generated.json
 .dependency-graph*
 mprocs.log
 .pnpm-store

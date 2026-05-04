@@ -12,7 +12,7 @@ const env = getEnv((env) => [env.HOST, env.PORT]);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
 	appType: "spa",
 	envPrefix: ["VITE_"],
 	build: {
@@ -25,7 +25,7 @@ export default defineConfig({
 		port: env.PORT,
 	},
 	plugins: [
-		orpcContractPlugin(),
+		...(command === "serve" ? [orpcContractPlugin()] : []),
 		devtools(),
 		tailwindcss(),
 		tanstackRouter({
@@ -43,4 +43,4 @@ export default defineConfig({
 			},
 		],
 	},
-});
+}));
