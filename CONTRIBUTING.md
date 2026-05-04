@@ -184,6 +184,145 @@ await withSpan("orpc.dispatch", () => orpcHandler.handle(request, context), {
 
 - Use `kebab-case` for file names.
 
+## Backend Module Organization
+
+### Route vs Flow vs Data
+
+- Use route-bound oRPC procedures with `.route({ method, path })` for externally reachable backend APIs.
+- Keep REST API shape through oRPC route metadata so OpenAPI generation remains accurate.
+- Put flow-based modules in domain folders such as `src/routes/(rpc)/donations`.
+- Put internal-by-default DB access in `src/routes/(rpc)/data/<semantic-domain>`.
+- Group data modules by semantics, not by raw table names.
+  - Prefer `data/donations` or `data/dispenser`
+  - Avoid scattering raw table helpers across unrelated flow folders
+- Only split into a subfolder when that semantic area needs multiple files.
+- If a repo or service is one implementation file plus a barrel, hoist it instead of creating a needless folder.
+
+### Naming
+
+- Use `*Repo` for resource-style CRUD access.
+- Use `*Service` for multi-step flow orchestration.
+- Treat callable oRPC functions like regular functions in naming.
+- Do not suffix callable names with `Procedure`.
+- Localize internal names when they stay inside their home folder.
+  - `create`, `update`, `findById` are preferred over `createDonationRecordProcedure`, `updateDonationProcedure`, etc. when they are local to one folder.
+- Keep repo methods CRUD-oriented when generic CRUD is enough.
+  - Prefer `create`, `findById`, `findFirst`, `update`, `delete`
+  - Avoid domain-specific wrappers like `markPaid()` when `update()` is sufficient
+- Do not accept generic Prisma `Where` inputs at repo boundaries.
+- Prefer explicit object-shaped params with only the filters and pagination fields the repo intentionally supports.
+- Nested `where` shapes are acceptable only when they are explicitly defined and directly handled by repo logic.
+- Reuse Prisma types selectively for result or payload shapes when that stays clear, but do not expose generic caller-supplied Prisma filter contracts.
+
+### Callable Procedure Preference
+
+- Prefer oRPC callable procedures over plain functions for backend work that performs I/O.
+- Reasons:
+  - automatic instrumentation
+  - typed input/output contracts
+  - consistent observability behavior
+- When the callable does not accept unknown user input, prefer `type<>` input typing instead of introducing unnecessary Zod schemas.
+- Fall back to plain functions only for:
+  - pure domain logic with no I/O to trace
+  - pure CPU-bound operations. If this is computationally expensive, wrap at the service-layer with `withSpan()`, so instrumentation is opt-in
+
+### CRUD Parameter Shape
+
+- Standardize repo callable params around an object input, even when only one or two fields are needed.
+- Use this as the direction for consistency, not as a requirement to implement every variation up front. Do not treat this as actual real type to be shared:
+
+```ts
+type RepoParams<TWhere, TData> = {
+	id?: string;
+	ids?: string[];
+	pagination?: { type: "cursor"; nextCursor?: string } | { type: "offset"; page: number; size: number };
+	where?: TWhere;
+	data?: TData;
+};
+```
+
+- Only implement the specific CRUD methods and params the current feature actually needs.
+- Do not accept catch-all filtering contracts just to mirror Prisma surface area.
+- Keep repo params explicit enough to support validation, access checks, and predictable instrumentation.
+
+### Access Rules
+
+- When using a backend function or callable outside its home folder, prefer access through barrel exports.
+- Avoid direct imports from deep implementation files when a folder barrel is available.
+- Tree shaking is not a concern for backend code here; optimize for traceability and stable boundaries.
+
+### oRPC Error Handling
+
+- Follow oRPC OpenAPI error handling conventions for externally reachable route-bound procedures.
+- Reference: `https://orpc.dev/docs/openapi/error-handling`
+- Throw structured oRPC errors instead of ad hoc response payloads when representing API failures.
+- Map predictable backend failures to stable statuses, for example:
+  - validation/input issues -> `BAD_REQUEST` / `400`
+  - access or state conflicts -> `CONFLICT` / `409`
+  - missing resources -> `NOT_FOUND` / `404`
+  - upstream provider failures -> `BAD_GATEWAY` / `502`
+  - unexpected server failures -> `INTERNAL_SERVER_ERROR` / `500`
+
+### Example
+
+Preferred structure:
+
+```ts
+// src/routes/(rpc)/data/donations.ts
+export const DonationRepo = {
+\tcreate,
+\tfindById,
+\tfindFirst,
+\tupdate,
+\tdelete,
+};
+```
+
+```ts
+// src/routes/(rpc)/donations/shared/services.ts
+import { DonationRepo } from "../../data/donations";
+import { DispenserRepo } from "../../data/dispenser";
+import { XenditClient } from "../../../../lib/xendit-client";
+
+export const DonationService = {
+\tcreateCheckout,
+\thandlePaymentSessionWebhook,
+\tstartDispense,
+};
+```
+
+Prefer this:
+
+```ts
+import { DonationRepo } from "../../data/donations";
+import { DonationService } from "./shared/services";
+```
+
+Over this:
+
+```ts
+import { update } from "../../data/donations";
+import { startDispense } from "./shared/services";
+```
+
+Prefer this:
+
+```ts
+await DonationRepo.update({
+	id: donationId,
+	data: { status: "COMPLETED" },
+});
+```
+
+Over this:
+
+```ts
+await DonationRepo.update({
+	where: arbitraryPrismaWhereFromCaller,
+	data,
+});
+```
+
 ## Schema Naming
 
 - Entity schemas must use PascalCase and end with `Schema`.
