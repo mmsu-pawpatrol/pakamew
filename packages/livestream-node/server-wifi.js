@@ -4,6 +4,7 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const WebSocket = require("ws");
+const { createCorsMiddleware, parseAllowedOrigins, verifyWebSocketOrigin } = require("./cors");
 const { createFfmpegRtmpForwarder } = require("./ffmpeg/rtmp-forwarder");
 const { parseBooleanEnv, resolveGatewayConfig } = require("./gateway/config");
 const { createNormalizedLivestreamGateway } = require("./gateway/live-gateway");
@@ -11,13 +12,16 @@ const { createOmePlaybackUrls } = require("./ome-playback-urls");
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS);
 
 // Disable compression to save CPU and ensure zero-latency binary streaming.
 const wss = new WebSocket.Server({
 	server,
 	perMessageDeflate: false,
+	verifyClient: (info) => verifyWebSocketOrigin(info, allowedOrigins, ["/viewer"]),
 });
 
+app.use(createCorsMiddleware(allowedOrigins));
 app.use(express.static(path.join(__dirname, "public")));
 
 wss.on("error", (error) => {

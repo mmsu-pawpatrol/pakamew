@@ -41,6 +41,7 @@ Client-facing network contract:
 
 - `app-server` is exposed directly on `http://<host-or-ip>:3001`
 - `livestream-node` is exposed directly on `ws://<host-or-ip>:3000/viewer` for viewers and `ws://<host-or-ip>:3000/esp32-stream` for the shelter camera
+- when routed through Cloudflare on `server.pakamew.site`, use `wss://server.pakamew.site:2083/viewer` for viewers and `wss://server.pakamew.site:2083/esp32-stream` for the camera path
 - OvenMediaEngine is exposed directly on `http://<host-or-ip>:3333/app/esp32/master.m3u8` for LL-HLS playback, plus its RTMP/WebRTC-related ports
 
 Ingress behavior:
@@ -55,6 +56,7 @@ How each component uses those endpoints:
 - The web app talks to `app-server` using `VITE_API_URL`
 - The web app plays livestream video from OvenMediaEngine using `VITE_LIVESTREAM_PUBLIC_HLS_URL`
 - The web app can also use `livestream-node` directly through `VITE_LIVESTREAM_GATEWAY_WS_URL`
+- for the current Cloudflare-backed production host, those should be `https://server.pakamew.site:2087/app/esp32/master.m3u8` and `wss://server.pakamew.site:2083/viewer`
 
 ## Local Testing
 

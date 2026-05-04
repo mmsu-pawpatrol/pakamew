@@ -6,12 +6,15 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { CORSPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { Hono } from "hono";
+import { allowedOrigins } from "../../cors";
 import { $ESCALATE, config, getLogger } from "../../instrumentation/core";
 import { OrpcInstrumentation } from "../../instrumentation/integrations";
+import { feeder } from "./feeder";
 import { ping } from "./ping";
 
 // Root Router
 export const router = {
+	feeder,
 	ping,
 };
 
@@ -21,7 +24,10 @@ export type RPCRouterClient = RouterClient<typeof router>;
 const logger = getLogger();
 const handler = new RPCHandler(router, {
 	plugins: [
-		new CORSPlugin(),
+		new CORSPlugin({
+			origin: allowedOrigins,
+			credentials: true,
+		}),
 		new LoggingHandlerPlugin({
 			logger,
 			logRequestResponse: config.OBS_ENABLE_ORPC_LOG_REQUEST_RESPONSE,

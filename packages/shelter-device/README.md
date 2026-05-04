@@ -9,4 +9,4 @@ Board: `esp32` by Espressif Systems
 Libraries:
 
 - `Websockets` by Markus Sattler
-- `WiFi101_Generic` by Arduino
+- `PubSubClient` by Nick O'Leary

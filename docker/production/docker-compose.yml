@@ -45,6 +45,10 @@ services:
       traefik.docker.network: pakamew-prod-edge
       traefik.http.routers.app-server.entrypoints: appserver
       traefik.http.routers.app-server.rule: PathPrefix(`/`)
+      traefik.http.routers.app-server-tls.entrypoints: appserver
+      traefik.http.routers.app-server-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.app-server-tls.tls: "true"
+      traefik.http.routers.app-server-tls.service: app-server
       traefik.http.services.app-server.loadbalancer.server.port: "${APP_SERVER_PORT}"
     networks:
       - default
@@ -86,6 +90,10 @@ services:
       traefik.docker.network: pakamew-prod-edge
       traefik.http.routers.livestream-node.entrypoints: livestream
       traefik.http.routers.livestream-node.rule: PathPrefix(`/`)
+      traefik.http.routers.livestream-node-tls.entrypoints: livestream
+      traefik.http.routers.livestream-node-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.livestream-node-tls.tls: "true"
+      traefik.http.routers.livestream-node-tls.service: livestream-node
       traefik.http.services.livestream-node.loadbalancer.server.port: "${LIVESTREAM_NODE_PORT}"
     networks:
       - default
@@ -101,11 +109,29 @@ services:
       - "${TRAEFIK_HTTPS_BIND_IP}:${TRAEFIK_HTTPS_PORT}:443"
       - "${TRAEFIK_APP_SERVER_BIND_IP}:${TRAEFIK_APP_SERVER_PORT}:3001"
       - "${TRAEFIK_LIVESTREAM_BIND_IP}:${TRAEFIK_LIVESTREAM_PORT}:3000"
+      - "${TRAEFIK_OME_BIND_IP}:${TRAEFIK_OME_PORT}:2087"
       - "${TRAEFIK_DASHBOARD_BIND_IP}:${TRAEFIK_DASHBOARD_PORT}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     networks:
+      - edge
+
+  ovenmediaengine:
+    expose:
+      - "3333"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: pakamew-prod-edge
+      traefik.http.routers.ovenmediaengine.entrypoints: ome
+      traefik.http.routers.ovenmediaengine.rule: PathPrefix(`/`)
+      traefik.http.routers.ovenmediaengine-tls.entrypoints: ome
+      traefik.http.routers.ovenmediaengine-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.ovenmediaengine-tls.tls: "true"
+      traefik.http.routers.ovenmediaengine-tls.service: ovenmediaengine
+      traefik.http.services.ovenmediaengine.loadbalancer.server.port: "3333"
+    networks:
+      - default
       - edge
 
   alloy:

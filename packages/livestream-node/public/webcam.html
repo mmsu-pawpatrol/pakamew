@@ -11,6 +11,10 @@
 		<video id="preview" autoplay muted playsinline width="320" height="240"></video>
 		<br />
 		<br />
+		<label for="socket-url">WebSocket URL or host</label>
+		<br />
+		<input id="socket-url" type="text" size="48" autocomplete="off" spellcheck="false" />
+		<p>Examples: <code>ws://192.168.1.10:3000/esp32-stream</code> or <code>192.168.1.10:3000</code></p>
 		<button id="start" type="button">Start</button>
 		<button id="stop" type="button">Stop</button>
 		<button id="pip" type="button">Enter PiP</button>
@@ -18,6 +22,7 @@
 
 		<script>
 			const statusEl = document.getElementById("status");
+			const socketUrlInput = document.getElementById("socket-url");
 			const startBtn = document.getElementById("start");
 			const stopBtn = document.getElementById("stop");
 			const pipBtn = document.getElementById("pip");
@@ -29,6 +34,9 @@
 			const HEIGHT = 240;
 			const FPS = 24;
 			const JPEG_QUALITY = 0.6;
+			const SOCKET_PATH = "/esp32-stream";
+			const SOCKET_URL_QUERY_KEY = "ws";
+			const SOCKET_URL_STORAGE_KEY = "webcamPublisher.socketUrl";
 			const PIP_SUPPORTED = document.pictureInPictureEnabled && typeof video.requestPictureInPicture === "function";
 
 			let stream = null;
@@ -84,9 +92,61 @@
 				render();
 			}
 
-			function socketUrl(path) {
-				const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-				return `${protocol}://${window.location.host}${path}`;
+			function defaultSocketOrigin() {
+				const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+				return `${protocol}//${window.location.host}`;
+			}
+
+			function normalizeSocketUrl(value) {
+				const trimmed = value.trim();
+				if (!trimmed) {
+					throw new Error("Enter a WebSocket URL or host before starting");
+				}
+
+				let url;
+				if (/^wss?:\/\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
+					url = new URL(trimmed);
+				} else if (trimmed.startsWith("/")) {
+					url = new URL(trimmed, defaultSocketOrigin());
+				} else {
+					url = new URL(`${defaultSocketOrigin().split("//")[0]}//${trimmed}`);
+				}
+
+				if (url.protocol === "http:") {
+					url.protocol = "ws:";
+				}
+				if (url.protocol === "https:") {
+					url.protocol = "wss:";
+				}
+				if (url.protocol !== "ws:" && url.protocol !== "wss:") {
+					throw new Error(`Unsupported protocol: ${url.protocol}`);
+				}
+				if (!url.pathname || url.pathname === "/") {
+					url.pathname = SOCKET_PATH;
+				}
+
+				return url.toString();
+			}
+
+			function getInitialSocketUrl() {
+				const params = new URLSearchParams(window.location.search);
+				const configuredValue =
+					params.get(SOCKET_URL_QUERY_KEY) ??
+					window.localStorage.getItem(SOCKET_URL_STORAGE_KEY) ??
+					window.location.host;
+
+				try {
+					return normalizeSocketUrl(configuredValue);
+				} catch {
+					return normalizeSocketUrl(window.location.host);
+				}
+			}
+
+			function getConfiguredSocketUrl() {
+				const normalizedUrl = normalizeSocketUrl(socketUrlInput.value);
+				socketUrlInput.value = normalizedUrl;
+				window.localStorage.setItem(SOCKET_URL_STORAGE_KEY, normalizedUrl);
+				return normalizedUrl;
 			}
 
 			function updateCameraText() {
@@ -149,10 +209,10 @@
 				);
 			}
 
-			function connectSocket() {
-				socket = new WebSocket(socketUrl("/esp32-stream"));
+			function connectSocket(socketUrl) {
+				socket = new WebSocket(socketUrl);
 				socket.addEventListener("open", () => {
-					setStatus("Connected. Starting stream...");
+					setStatus(`Connected to ${socketUrl}. Starting stream...`);
 					resetStats();
 					frameTimer = window.setInterval(sendFrame, Math.floor(1000 / FPS));
 					statsTimer = window.setInterval(updateStreamingStatus, 1000);
@@ -205,6 +265,7 @@
 				}
 
 				try {
+					const socketUrl = getConfiguredSocketUrl();
 					setStatus("Requesting webcam permission...");
 					stream = await navigator.mediaDevices.getUserMedia({
 						video: {
@@ -221,10 +282,11 @@
 					updateCameraText();
 					render();
 					await requestPiP(true);
-					connectSocket();
+					connectSocket(socketUrl);
 				} catch (error) {
-					setStatus(`Start failed: ${error instanceof Error ? error.message : String(error)}`);
+					const message = `Start failed: ${error instanceof Error ? error.message : String(error)}`;
 					await stopStream();
+					setStatus(message);
 				}
 			}
 
@@ -261,6 +323,7 @@
 				render();
 			});
 			window.addEventListener("beforeunload", () => void stopStream());
+			socketUrlInput.value = getInitialSocketUrl();
 			render();
 		</script>
 	</body>
