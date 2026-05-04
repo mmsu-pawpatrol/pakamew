@@ -1,11 +1,11 @@
-import path from "path";
 import { fileURLToPath } from "node:url";
+import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import { orpcContractPlugin } from "../app-server/scripts/orpc-contract";
 import { defineConfig } from "vite";
+import { orpcContractPlugin } from "../app-server/scripts/orpc-contract";
 import { getEnv } from "./src/env.server";
 
 const env = getEnv((env) => [env.HOST, env.PORT]);
