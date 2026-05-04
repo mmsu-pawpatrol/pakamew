@@ -3,6 +3,7 @@ import pino, { type DestinationStream, type Logger, type LoggerOptions } from "p
 import { getEnv } from "../../../env";
 import type { config } from "../config";
 import { $ESCALATE } from "../constants";
+import { enrichZodErrorLogEntry } from "./zod";
 
 const { NODE_ENV } = getEnv((env) => [env.NODE_ENV]);
 
@@ -135,6 +136,8 @@ export function initLogger(config: LoggerConfig, destination?: DestinationStream
 		},
 		hooks: {
 			logMethod(args, method) {
+				args[0] = enrichZodErrorLogEntry(args[0]);
+
 				const entry = asEscalationLogEntry(args[0]);
 				if (!entry || !($ESCALATE in entry)) {
 					return method.apply(this, args);
