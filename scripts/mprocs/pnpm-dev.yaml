@@ -3,5 +3,7 @@ procs:
     shell: "pnpm run dev:web"
   server:
     shell: "pnpm run dev:server"
-  livestream-node:
+  livestream:
     shell: "pnpm run start:livestream-node"
+  prisma:
+    shell: "pnpm --filter @pakamew/server exec prisma studio"
