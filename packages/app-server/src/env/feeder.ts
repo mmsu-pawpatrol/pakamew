@@ -1,6 +1,9 @@
 import z from "zod";
 
 export interface FeederEnv {
+	/** Use an in-process feeder simulator instead of MQTT hardware. */
+	DEV_MOCK_FEEDER: boolean;
+
 	/** MQTT broker URL used by the feeder relay. */
 	MQTT_BROKER_URL: string;
 
@@ -27,6 +30,8 @@ export interface FeederEnv {
 }
 
 export const FeederEnvSchema = z.object({
+	DEV_MOCK_FEEDER: z.stringbool().default(false),
+
 	MQTT_BROKER_URL: z.string().min(1).default("mqtt://broker.hivemq.com:1883"),
 
 	MQTT_USERNAME: z.string().default(""),

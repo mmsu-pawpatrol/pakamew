@@ -1,9 +1,18 @@
+/**
+ * Donation checkout form for fixed immediate-feed tiers.
+ */
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
-import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useState, type ChangeEvent } from "react";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { useORPCClient } from "@/lib/orpc";
+import { DONATION_TIERS } from "@pakamew/shared/lib/donation";
+import { useMutation } from "@tanstack/react-query";
+import { CircleAlertIcon } from "lucide-react";
+import { useState } from "react";
 import { DonationPresetSelector, type DonationPresetOption } from "./-amount-preset";
 
 const pesoNumber = new Intl.NumberFormat("en-PH", {
@@ -13,48 +22,62 @@ const pesoNumber = new Intl.NumberFormat("en-PH", {
 	maximumFractionDigits: 0,
 });
 
-const PRESET_AMOUNTS = [10, 20, 30, 40, 50, 100] as const;
-const PRESET_AMOUNT_OPTIONS: readonly DonationPresetOption[] = PRESET_AMOUNTS.map((amount) => {
-	const label = pesoNumber.format(amount);
-	return { value: String(amount), label, ariaLabel: `Select ${label} donation` };
-});
-
-function getActiveDonationAmount(selectedPreset: string, customAmount: string) {
-	if (customAmount.trim() !== "") {
-		const parsedCustomAmount = Number(customAmount);
-		if (Number.isFinite(parsedCustomAmount) && parsedCustomAmount > 0) {
-			return parsedCustomAmount;
-		}
-
-		return null;
-	}
-
-	if (!selectedPreset) return null;
-
-	const parsedPresetAmount = Number(selectedPreset);
-	return Number.isFinite(parsedPresetAmount) && parsedPresetAmount > 0 ? parsedPresetAmount : null;
+function toCupLabel(approxCupLabel: string): string {
+	return approxCupLabel.replace(/^about\s+/, "");
 }
 
+const PRESET_AMOUNT_OPTIONS: readonly DonationPresetOption[] = DONATION_TIERS.map(({ amount, approxCupLabel }) => {
+	const label = pesoNumber.format(amount);
+	const cupLabel = toCupLabel(approxCupLabel);
+
+	return {
+		value: String(amount),
+		label,
+		cupLabel,
+		ariaLabel: `Select ${label} donation, ${approxCupLabel}`,
+	};
+});
+
+function getErrorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : "Unable to start checkout right now.";
+}
+
+function getFooterCopy(activeTier: (typeof DONATION_TIERS)[number] | undefined): string {
+	if (activeTier) return "You’ll be redirected to Xendit hosted checkout.";
+
+	return "Choose one of the fixed donation tiers to continue.";
+}
+
+/** Donation checkout form that starts a hosted Xendit payment session. */
 export function DonationAmountForm() {
+	const client = useORPCClient();
 	const [selectedPreset, setSelectedPreset] = useState<string>("");
-	const [customAmount, setCustomAmount] = useState<string>("");
-	const navigate = useNavigate();
-	const activeAmount = getActiveDonationAmount(selectedPreset, customAmount);
+	const [name, setName] = useState("");
+	const activeTier = DONATION_TIERS.find((tier) => String(tier.amount) === selectedPreset);
+	const donationDisabled = !activeTier;
 
-	const handlePresetChange = useCallback((value: string) => {
-		setSelectedPreset(value);
-		if (value) setCustomAmount("");
-	}, []);
+	const createCheckoutSessionMutation = useMutation({
+		mutationFn: async () => {
+			if (!activeTier) {
+				throw new Error("Select a donation amount to continue.");
+			}
 
-	function handleCustomAmountChange(event: ChangeEvent<HTMLInputElement>) {
-		const nextValue = event.target.value;
-		setCustomAmount(nextValue);
-		if (nextValue.trim() !== "") setSelectedPreset("");
-	}
+			return await client.donations.CheckoutSession.create({
+				amount: activeTier.amount,
+				name: name.trim() || undefined,
+			});
+		},
+		onSuccess: (result) => {
+			window.location.assign(result.paymentLinkUrl);
+		},
+	});
 
 	function handleDonateClick() {
-		if (!activeAmount) return;
-		void navigate({ to: "/donate/success" });
+		if (donationDisabled || createCheckoutSessionMutation.isPending) {
+			return;
+		}
+
+		createCheckoutSessionMutation.mutate();
 	}
 
 	return (
@@ -63,45 +86,47 @@ export function DonationAmountForm() {
 				<FieldGroup className="gap-6">
 					<DonationPresetSelector
 						selectedPreset={selectedPreset}
-						onValueChange={handlePresetChange}
+						onValueChange={setSelectedPreset}
 						options={PRESET_AMOUNT_OPTIONS}
 					/>
 
 					<Field>
-						<FieldLabel className="sr-only" htmlFor="donation-custom-amount">
-							Custom amount
+						<FieldLabel htmlFor="donor-name">
+							Name <span className="text-muted-foreground font-normal">(Optional)</span>
 						</FieldLabel>
-						<InputGroup>
-							<InputGroupAddon
-								align="inline-start"
-								className="border-input h-full min-w-9 shrink-0 justify-center self-stretch border-r px-0">
-								<InputGroupText className="text-foreground font-semibold">₱</InputGroupText>
-							</InputGroupAddon>
-							<InputGroupInput
-								className="pl-2.5!"
-								id="donation-custom-amount"
-								type="number"
-								inputMode="decimal"
-								min={1}
-								step="1"
-								placeholder="Enter custom amount"
-								value={customAmount}
-								onChange={handleCustomAmountChange}
-							/>
-						</InputGroup>
+						<Input
+							id="donor-name"
+							autoComplete="name"
+							name="donor-name"
+							placeholder="Enter name ..."
+							value={name}
+							onChange={(event) => {
+								setName(event.target.value);
+							}}
+						/>
 					</Field>
+
+					{createCheckoutSessionMutation.isError ? (
+						<Alert variant="destructive">
+							<CircleAlertIcon />
+							<AlertTitle>Checkout unavailable</AlertTitle>
+							<AlertDescription>{getErrorMessage(createCheckoutSessionMutation.error)}</AlertDescription>
+						</Alert>
+					) : null}
 				</FieldGroup>
 			</CardContent>
 
-			<CardFooter className="mt-auto flex-col items-stretch gap-3 border-t px-5 pt-5 pb-10 sm:px-8 sm:pb-8">
-				<Button type="button" size="lg" disabled={!activeAmount} className="w-full" onClick={handleDonateClick}>
-					{activeAmount ? `Donate ${pesoNumber.format(activeAmount)}` : "Donate"}
+			<CardFooter className="flex-col items-stretch gap-3 border-t px-5 pb-10 sm:px-8 sm:pb-8">
+				<Button
+					type="button"
+					size="lg"
+					disabled={donationDisabled || createCheckoutSessionMutation.isPending}
+					className="w-full"
+					onClick={handleDonateClick}>
+					{createCheckoutSessionMutation.isPending ? <Spinner data-icon="inline-start" /> : null}
+					{activeTier ? `Donate ${pesoNumber.format(activeTier.amount)}` : "Donate"}
 				</Button>
-				<p className="text-muted-foreground text-center text-xs">
-					{activeAmount
-						? `Selected amount: ${pesoNumber.format(activeAmount)}`
-						: "Select or enter an amount to continue."}
-				</p>
+				<p className="text-muted-foreground text-center text-xs">{getFooterCopy(activeTier)}</p>
 			</CardFooter>
 		</>
 	);

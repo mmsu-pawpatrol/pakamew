@@ -1,15 +1,14 @@
 import { createORPCClient } from "@orpc/client";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import type { RPCRouterClient } from "@pakamew/server/api";
 import { useMemo, type ReactNode } from "react";
-import { link, ORPCClientContext, ORPCTanstackQueryUtilsContext } from "./orpc";
+import { link, ORPCClientContext, ORPCTanstackQueryUtilsContext, type ORPCClient } from "./orpc";
 
 export interface ORPCProviderProps {
 	children: ReactNode;
-	client?: RPCRouterClient;
+	client?: ORPCClient;
 }
 
-const defaultClient: RPCRouterClient = createORPCClient(link);
+const defaultClient: ORPCClient = createORPCClient(link);
 
 export function ORPCProvider({ children, client }: ORPCProviderProps) {
 	const resolvedClient = client ?? defaultClient;

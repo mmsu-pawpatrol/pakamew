@@ -91,8 +91,67 @@ function toResponse(params: {
 	});
 }
 
+function toMockDeviceMessage(
+	command: FeederTriggerInput,
+	requestId: string,
+	deviceId: string,
+	timestamp: number,
+): FeederDeviceMessage {
+	return {
+		requestId,
+		deviceId,
+		state: "completed",
+		busy: false,
+		timestamp,
+		message: "development mock feeder completed the command",
+		mode: command.mode,
+		angle: command.mode === "angle" ? command.angle : undefined,
+		openDurationMs: command.mode === "duration" ? command.openDurationMs : undefined,
+	};
+}
+
+function publishMockFeederCommand(command: FeederTriggerInput): FeederTriggerResponse {
+	const config = getFeederRelayConfig();
+	const requestId = crypto.randomUUID();
+	const requestedAt = Date.now();
+	const response = toResponse({
+		requestId,
+		command,
+		requestedAt,
+		result: "accepted",
+		acknowledgementState: "accepted",
+		brokerConnected: true,
+		message: "development mock feeder accepted the command",
+	});
+
+	recordTriggerResult(response);
+	recordDeviceMessage("events", toMockDeviceMessage(command, requestId, config.target.deviceId, response.respondedAt));
+
+	logger.info(
+		{
+			event: "feeder.mock.command.result",
+			requestId: response.requestId,
+			result: response.result,
+			mode: response.command.mode,
+			deviceId: response.deviceId,
+		},
+		"Handled mock feeder command request",
+	);
+
+	return response;
+}
+
 export function getFeederStatus() {
 	const config = getFeederRelayConfig();
+	if (config.devMockFeeder) {
+		return buildFeederStatus({
+			target: config.target,
+			brokerUrl: "mock://dev-feeder",
+			brokerConnected: true,
+			ackTimeoutMs: config.ackTimeoutMs,
+		});
+	}
+
 	const client = ensureRelayClient(handleIncomingMessage);
 
 	return buildFeederStatus({
@@ -105,6 +164,10 @@ export function getFeederStatus() {
 
 export async function publishFeederCommand(command: FeederTriggerInput) {
 	const config = getFeederRelayConfig();
+	if (config.devMockFeeder) {
+		return publishMockFeederCommand(command);
+	}
+
 	const client = ensureRelayClient(handleIncomingMessage);
 	const requestId = crypto.randomUUID();
 	const requestedAt = Date.now();

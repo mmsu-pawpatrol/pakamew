@@ -184,9 +184,220 @@ await withSpan("orpc.dispatch", () => orpcHandler.handle(request, context), {
 
 - Use `kebab-case` for file names.
 
+## Backend Module Organization
+
+### Route vs Flow vs Data
+
+- Use route-bound oRPC procedures with `.route({ method, path })` for externally reachable backend APIs.
+- Keep REST API shape through oRPC route metadata so OpenAPI generation remains accurate.
+- Put flow-based modules in domain folders such as `src/routes/(rpc)/donations`.
+- Put internal-by-default DB access in `src/routes/(rpc)/data/<semantic-domain>`.
+- Group data modules by semantics, not by raw table names.
+  - Prefer `data/donations` or `data/dispenser`
+  - Avoid scattering raw table helpers across unrelated flow folders
+- Only split into a subfolder when that semantic area needs multiple files.
+- If a repo or service is one implementation file plus a barrel, hoist it instead of creating a needless folder.
+
+### Naming
+
+- Use `*Repo` for resource-style CRUD access.
+- Use `*Service` for multi-step flow orchestration.
+- Colocate types with the function, method, or module they directly support.
+  - Avoid generic `types.ts` dumping grounds when the types have a single obvious home.
+- Prefer resource-shaped client APIs when a domain has multiple operations.
+  - Example: `XenditClient.PaymentSession.create()` over a flat verb list.
+- Treat callable oRPC functions like regular functions in naming.
+- Do not suffix callable names with `Procedure`.
+- Localize internal names when they stay inside their home folder.
+  - `create`, `update`, `findById` are preferred over `createDonationRecordProcedure`, `updateDonationProcedure`, etc. when they are local to one folder.
+- Keep repo methods CRUD-oriented when generic CRUD is enough.
+  - Prefer `create`, `findById`, `findFirst`, `update`, `delete`
+  - Avoid domain-specific wrappers like `markPaid()` when `update()` is sufficient
+- Do not accept generic Prisma `Where` inputs at repo boundaries.
+- Prefer explicit object-shaped params with only the filters and pagination fields the repo intentionally supports.
+- Nested `where` shapes are acceptable only when they are explicitly defined and directly handled by repo logic.
+- Reuse Prisma types selectively for result or payload shapes when that stays clear, but do not expose generic caller-supplied Prisma filter contracts.
+- For barrel-exported backend objects, define an interface for the barrel shape so referenced methods remain visible and traceable.
+
+### Control Flow
+
+- Reduce nesting and cyclomatic complexity before adding more abstraction.
+- Prefer fewer lines of code for the same behavior when readability stays intact.
+  - Fold simple expressions, short object literals, and straightforward returns onto one line when they remain easy to scan.
+  - Keep spacing between not-so-related code steps inside a body so the execution phases remain visible.
+  - Use more lines only when they improve readability, preserve compatibility, or support a measurable performance reason.
+- Hoist wrapped async work into named functions or `const` callbacks when using wrappers such as `withSpan(...)`.
+- Keep logger scopes and span names consistent with the domain and operation they represent.
+- Prefer lookup maps for straightforward status or copy translation over long branch chains.
+- Inline helpers that only wrap a trivial single expression or are used once.
+  - Do not create abstractions that do not earn their existence.
+
+### Callable Procedure Preference
+
+- Prefer oRPC callable procedures over plain functions for backend work that performs I/O.
+- Reasons:
+  - automatic instrumentation
+  - typed input/output contracts
+  - consistent observability behavior
+- Route-bound oRPC procedures are also service methods, but they should not be made callable by default.
+  - Keep `.route({ ... })` procedures as procedures so OpenAPI metadata remains visible to Scalar/OpenAPI tooling.
+  - When server-side code must invoke a route-bound procedure, create a callable at the call site with `.callable({ context })(input)` or use `call(procedure, input, { context })` from `@orpc/server`.
+  - Prefer `.callable({ context })(input)` when the same local caller invokes the procedure repeatedly; prefer `call(...)` for one-off invocation.
+- When invoking a callable procedure directly, prefer the callable itself with the second argument for options/context over wrapping it with `call(...)`.
+- When the callable does not accept unknown user input, prefer `type<>` input typing instead of introducing unnecessary Zod schemas.
+- Always pass required initial context explicitly when creating or invoking server-side oRPC clients/callables.
+  - oRPC can compute execution context through middleware, but it does not implicitly capture a parent procedure context for separate direct server-side calls.
+  - If nested logic needs the current request context, pass the relevant context slice from the caller.
+- Fall back to plain functions only for:
+  - pure domain logic with no I/O to trace
+  - pure CPU-bound operations. If this is computationally expensive, wrap at the service-layer with `withSpan()`, so instrumentation is opt-in
+
+### Documentation Comments
+
+- Place file-header documentation at the very top of the file, before imports.
+- Leave exactly one empty line between the file-header JSDoc and the first import or statement.
+- Use JSDoc/TSDoc for documenting APIs, reusable modules, exported items, and
+  stable internal boundaries that other files call into.
+- Every export must have JSDoc unless it is a pure re-export with documentation preserved at the source symbol.
+- Use regular comments for inline implementation notes and logic hotspots.
+  JSDoc is not a substitute for ordinary code comments.
+- Add regular comments before grouped statements when the group is not self-explanatory from names and local control flow alone.
+  - Prefer a short comment that explains the invariant, ordering dependency, or side effect.
+  - Do not comment obvious single statements, constructor assignments, or straightforward field copies.
+- Keep the first sentence as a brief summary. Put extra operational detail in
+  `@remarks` when the extra context helps a caller use the API correctly.
+- Collapse a JSDoc block to one line when it has only one sentence and fits under 80 characters.
+  - Example: `/** Shared fixed donation tiers for the immediate-feed MVP. */`
+  - Do not collapse when `@param`, `@returns`, `@remarks`, or other tags are present.
+- `@param` and `@returns` should explain semantics, invariants, side effects,
+  lifecycle expectations, and failure-sensitive behavior.
+  Do not merely restate the parameter name or TypeScript type in English.
+- Callable procedures must document their callable input with `@param`.
+  - For object inputs, document the object as `@param input - ...` and document meaningful nested properties as `@param input.<field> - ...`.
+  - Route-bound procedures do not need callable-style `@param` documentation unless they are explicitly made callable at a call site.
+- Prefer reusable documentation over duplicated documentation, but do not rely on unsupported editor behavior.
+  - TypeScript editor hovers support documentation references such as `@see` and `{@link ...}`.
+  - TypeScript does not currently treat `@inheritDoc` / `@inheritdoc` as a supported editor-hover inheritance tag.
+  - TypeDoc supports `{@inheritDoc SomeSymbol}` for generated API docs. Use it only when generated TypeDoc output is the target.
+  - For local wrapper/barrel surfaces, prefer `typeof implementation` member types and a concise `@see` / `{@link ...}` instead of copying the implementation's full JSDoc.
+- Document the contract that matters to the consumer:
+  what the code is for, when to call it, what it guarantees, and what the
+  caller must already have prepared.
+- Follow TSDoc/JSDoc-compatible structure so editor hovers and future doc tools
+  can parse the comments consistently.
+- Put JSDoc immediately before the code it documents.
+- Colocate types with the function, method, schema, or module section they support.
+  - If a type or schema is shared across the file, place it near the top after imports and module constants.
+  - If a type or schema is used once and is small, inline it directly in `.input(...)`, `.output(...)`, or the local signature.
+  - If a type is only used in one contiguous implementation section but is too large to inline clearly, keep it immediately before that section.
+
+### CRUD Parameter Shape
+
+- Standardize repo callable params around an object input, even when only one or two fields are needed.
+- Use Prisma generated create/update input types for repo `data` payloads when they directly describe the intended CRUD operation.
+- Do not use Prisma generated generic filter, `where`, ordering, include, or select input types at repo boundaries.
+- Use this as the direction for consistency, not as a requirement to implement every variation up front. Do not treat this as actual real type to be shared:
+
+```ts
+type RepoParams<TWhere, TData> = {
+	id?: string;
+	ids?: string[];
+	pagination?: { type: "cursor"; nextCursor?: string } | { type: "offset"; page: number; size: number };
+	where?: TWhere;
+	data?: TData;
+};
+```
+
+- Only implement the specific CRUD methods and params the current feature actually needs.
+- Do not accept catch-all filtering contracts just to mirror Prisma surface area.
+- Keep repo params explicit enough to support validation, access checks, and predictable instrumentation.
+
+### Access Rules
+
+- When using a backend function or callable outside its home folder, prefer access through barrel exports.
+- Avoid direct imports from deep implementation files when a folder barrel is available.
+- Tree shaking is not a concern for backend code here; optimize for traceability and stable boundaries.
+- Treat route-bound oRPC procedures as the service method itself.
+  - Do not add pass-through controller wrappers that only call another function with the same input and output.
+  - Hoist input and output schemas/types alongside the route-bound procedure that uses them.
+  - Do not call `.callable()` on route-bound procedures at export time unless they are intentionally internal-only and excluded from OpenAPI output.
+- Name route files by the resource noun that the route exposes, and put the verb in the exported method name. Example:
+  - Public donation checkout sessions live at `src/routes/(rpc)/donations/checkout-session.ts`, export `create`, and are accessed server-side as `DonationService.CheckoutSession.create`.
+  - Provider webhooks live under `src/routes/(rpc)/webhook/<provider>/<resource>.ts`; prefer an event-ingestion verb such as `receive`.
+  - Xendit payment-session webhooks live at `src/routes/(rpc)/webhook/xendit/payment-session.ts`, export `receive`, and are accessed server-side as `WebhookService.Xendit.PaymentSession.receive`.
+
+### oRPC Error Handling
+
+- Follow oRPC OpenAPI error handling conventions for externally reachable route-bound procedures.
+- Reference: `https://orpc.dev/docs/openapi/error-handling`
+- Throw structured oRPC errors instead of ad hoc response payloads when representing API failures.
+- Map predictable backend failures to stable statuses, for example:
+  - validation/input issues -> `BAD_REQUEST` / `400`
+  - access or state conflicts -> `CONFLICT` / `409`
+  - missing resources -> `NOT_FOUND` / `404`
+  - upstream provider failures -> `BAD_GATEWAY` / `502`
+  - unexpected server failures -> `INTERNAL_SERVER_ERROR` / `500`
+
+### Example
+
+Preferred structure:
+
+```ts
+// src/routes/(rpc)/data/donations.ts
+export const DonationRepo = {
+\tcreate,
+\tfindById,
+\tfindFirst,
+\tupdate,
+\tdelete,
+};
+```
+
+Prefer this:
+
+```ts
+import { DonationRepo } from "../../data/donations";
+import { DonationService } from "../donations";
+import { WebhookService } from "../webhook";
+
+await DonationService.CheckoutSession.create(input);
+await WebhookService.Xendit.PaymentSession.receive(input);
+```
+
+Over this:
+
+```ts
+import { update } from "../../data/donations";
+import { createCheckout, webhookPaymentSession } from "./shared/services";
+```
+
+Prefer this:
+
+```ts
+await DonationRepo.update({
+	id: donationId,
+	data: { status: "COMPLETED" },
+});
+```
+
+Over this:
+
+```ts
+await DonationRepo.update({
+	where: arbitraryPrismaWhereFromCaller,
+	data,
+});
+```
+
 ## Schema Naming
 
+- All Zod schema constants must use PascalCase.
 - Entity schemas must use PascalCase and end with `Schema`.
 - Use the format `<EntityName>Schema` (for example, `UserSchema`, `ProjectMemberSchema`).
 - Do not use camelCase entity schema names (for example, avoid `userSchema`).
 - Utility schemas are not treated as entity schemas; name them by purpose.
+
+## Prisma Migrations
+
+- Use precise timestamps for Prisma migration directory names.
+- Do not create new migrations with coarse timestamps.

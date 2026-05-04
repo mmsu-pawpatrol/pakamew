@@ -1,5 +1,5 @@
 import type { Context } from "@orpc/server";
-import type { RPCHandler } from "@orpc/server/fetch";
+import type { FetchHandler } from "@orpc/server/fetch";
 import type { StandardHandlerOptions } from "@orpc/server/standard";
 import type { Handler, MiddlewareHandler } from "hono";
 import { $ESCALATE } from "../../core/constants";
@@ -39,8 +39,7 @@ interface OrpcInstrumentationApi {
 	 * @param deps.handler - oRPC handler responsible for request dispatch.
 	 * @returns A Hono handler that tracks dispatch state for instrumentation.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler(deps: { handler: RPCHandler<any> }): Handler;
+	handler(deps: { handler: FetchHandler<Context> }): Handler;
 	/**
 	 * Creates a client interceptor that enriches context with resolved route metadata.
 	 * @returns An oRPC client interceptor.
@@ -126,8 +125,7 @@ export const OrpcInstrumentation: OrpcInstrumentationApi = {
 	/**
 	 * Wraps oRPC handler dispatch and writes request-scoped dispatch state.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler(deps: { handler: RPCHandler<any> }): Handler {
+	handler(deps: { handler: FetchHandler<Context> }): Handler {
 		return async (c, next) => {
 			const routeMetadata = createOrpcFallbackRouteMetadata(new URL(c.req.url).pathname);
 			const start = performance.now();
