@@ -13,6 +13,7 @@
 		"build": "vite build --configLoader runner",
 		"preview": "node --enable-source-maps dist/main.node.js",
 		"orpc:contract": "NODE_ENV=development OBS_PRESET=test OTEL_ENABLED=false tsx scripts/orpc-contract.ts",
+		"seed": "NODE_ENV=development tsx scripts/seed/index.ts",
 		"prepare": "prisma generate",
 		"dependency-graph:json": "pnpm depcruise src --include-only '^src' --exclude '(^src/.*[.](test|spec)[.](ts|tsx|js|jsx|mts|cts)$)|(^prisma/generated/)|(^\\.\\./app-shared/)' -T json -f .dependency-graph.json",
 		"dependency-graph:svg": "pnpm depcruise src --include-only '^src' --exclude '(^src/.*[.](test|spec)[.](ts|tsx|js|jsx|mts|cts)$)|(^prisma/generated/)|(^\\.\\./app-shared/)' -T archi | dot -Tsvg > .dependency-graph.svg",
