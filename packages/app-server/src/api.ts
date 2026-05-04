@@ -1,1 +1,1 @@
-export { type RPCRouterClient } from "./routes";
+export type { RPCRouterClient } from "./routes";

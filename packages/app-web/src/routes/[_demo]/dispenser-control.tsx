@@ -8,8 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useORPCClient } from "@/lib/orpc";
-import type { RPCRouterClient } from "@pakamew/server/api";
+import { useORPCClient, type ORPCClient } from "@/lib/orpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -28,9 +27,9 @@ export const Route = createFileRoute("/_demo/dispenser-control")({
 });
 
 type FeederMode = "duration" | "angle";
-type FeederStatusResponse = Awaited<ReturnType<RPCRouterClient["feeder"]["status"]>>;
-type FeederTriggerInput = Parameters<RPCRouterClient["feeder"]["trigger"]>[0];
-type FeederTriggerResponse = Awaited<ReturnType<RPCRouterClient["feeder"]["trigger"]>>;
+type FeederStatusResponse = Awaited<ReturnType<ORPCClient["feeder"]["status"]>>;
+type FeederTriggerInput = Parameters<ORPCClient["feeder"]["trigger"]>[0];
+type FeederTriggerResponse = Awaited<ReturnType<ORPCClient["feeder"]["trigger"]>>;
 
 const DURATION_RANGE = { min: 200, max: 30000, defaultValue: 1500 } as const;
 const ANGLE_RANGE = { min: 1, max: 360, defaultValue: 180 } as const;
