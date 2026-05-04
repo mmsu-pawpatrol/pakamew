@@ -12,13 +12,17 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import { Hono } from "hono";
 import { $ESCALATE, config, getLogger } from "../../instrumentation/core";
 import { OrpcInstrumentation } from "../../instrumentation/integrations";
+import { donations } from "./donations";
 import { feeder } from "./feeder";
 import { ping } from "./ping";
+import { webhook } from "./webhooks";
 
 /** Root oRPC router published through OpenAPI and RPC handlers. */
 export const router = {
+	donations,
 	feeder,
 	ping,
+	webhook,
 };
 
 /** Typed client shape generated from the root oRPC router. */

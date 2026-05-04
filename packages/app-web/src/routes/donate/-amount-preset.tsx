@@ -5,6 +5,7 @@ import { memo } from "react";
 export interface DonationPresetOption {
 	value: string;
 	label: string;
+	cupLabel: string;
 	ariaLabel: string;
 }
 
@@ -33,8 +34,11 @@ export const DonationPresetSelector = memo(function DonationPresetSelector({
 						key={preset.value}
 						value={preset.value}
 						aria-label={preset.ariaLabel}
-						className="h-11 w-full rounded-xl text-base font-semibold">
-						{preset.label}
+						className="h-11 w-full rounded-xl px-3 text-base font-semibold">
+						<span className="flex min-w-0 items-center justify-center gap-2">
+							<span>{preset.label}</span>
+							<span className="text-muted-foreground/70 text-[0.68rem] font-normal">{preset.cupLabel}</span>
+						</span>
 					</ToggleGroupItem>
 				))}
 			</ToggleGroup>

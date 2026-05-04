@@ -1,3 +1,7 @@
+/**
+ * App-server environment schema composition.
+ */
+
 import "dotenv/config";
 import { createGetEnv } from "@pakamew/shared/utils/get-env";
 import z from "zod";
@@ -10,12 +14,16 @@ import {
 	type ObservabilitySwitchesEnv,
 } from "./observability";
 import { OtelEnvSchema, type OtelEnv } from "./otel";
+import { PaymentsEnvSchema, type PaymentsEnv } from "./payments";
 
-export interface Env extends CoreEnv, FeederEnv, OtelEnv, ObservabilityEnv, ObservabilitySwitchesEnv {}
+/** Fully composed app-server environment contract. */
+export interface Env extends CoreEnv, FeederEnv, PaymentsEnv, OtelEnv, ObservabilityEnv, ObservabilitySwitchesEnv {}
 
+/** Runtime schema for the composed app-server environment. */
 export const EnvSchema = z.object({
 	...CoreEnvSchema.shape,
 	...FeederEnvSchema.shape,
+	...PaymentsEnvSchema.shape,
 	...OtelEnvSchema.shape,
 	...ObservabilityEnvSchema.shape,
 	...ObservabilitySwitchesEnvSchema.shape,

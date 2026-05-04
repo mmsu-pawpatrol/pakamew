@@ -1,3 +1,7 @@
+/**
+ * In-memory feeder device state snapshot helpers.
+ */
+
 import type {
 	FeederCommandSummary,
 	FeederDeviceMessage,
@@ -8,6 +12,7 @@ import type {
 } from "./contracts";
 
 interface CachedDeviceSnapshot {
+	requestId: string | null;
 	state: FeederStatus["latestKnownDeviceState"]["state"];
 	busy: boolean;
 	timestamp: number | null;
@@ -19,6 +24,7 @@ interface CachedDeviceSnapshot {
 }
 
 const currentDeviceSnapshot: CachedDeviceSnapshot = {
+	requestId: null,
 	state: "unknown",
 	busy: false,
 	timestamp: null,
@@ -39,6 +45,7 @@ function toNullableOpenDuration(command: FeederTriggerInput) {
 	return command.mode === "duration" ? command.openDurationMs : null;
 }
 
+/** Record the latest relay response for a submitted feeder command. */
 export function recordTriggerResult(response: FeederTriggerResponse) {
 	lastCommandSummary = {
 		requestId: response.requestId,
@@ -53,7 +60,9 @@ export function recordTriggerResult(response: FeederTriggerResponse) {
 	};
 }
 
+/** Record a feeder status/event message as the latest known device state. */
 export function recordDeviceMessage(source: "status" | "events", message: FeederDeviceMessage) {
+	currentDeviceSnapshot.requestId = message.requestId ?? null;
 	currentDeviceSnapshot.state = message.state;
 	currentDeviceSnapshot.busy = message.busy;
 	currentDeviceSnapshot.timestamp = message.timestamp;
@@ -80,6 +89,7 @@ export function recordDeviceMessage(source: "status" | "events", message: Feeder
 	};
 }
 
+/** Build the public feeder status snapshot from relay and device state. */
 export function buildFeederStatus(params: {
 	target: FeederTarget;
 	brokerUrl: string;
