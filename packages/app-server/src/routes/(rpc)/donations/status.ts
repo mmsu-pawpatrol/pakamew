@@ -47,6 +47,7 @@ const reconcile = os
 		const feederStatus = getFeederStatus();
 		if (feederStatus.latestKnownDeviceState.requestId !== latestAttempt.requestId) return donation;
 
+		// Feeder timestamps are backend receive times while ESP32 clocks are not reliable.
 		const completedAt = feederStatus.latestKnownDeviceState.timestamp
 			? new Date(feederStatus.latestKnownDeviceState.timestamp)
 			: new Date();

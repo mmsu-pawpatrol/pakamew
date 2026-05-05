@@ -20,6 +20,7 @@ function handleIncomingMessage(topic: string, payload: Buffer) {
 	if (topic !== config.target.statusTopic && topic !== config.target.eventsTopic) {
 		return;
 	}
+	const receivedAt = Date.now();
 
 	let parsedPayload: unknown;
 	try {
@@ -50,18 +51,32 @@ function handleIncomingMessage(topic: string, payload: Buffer) {
 	}
 
 	const source = topic === config.target.statusTopic ? "status" : "events";
-	recordDeviceMessage(source, parsedMessage.data);
+	const serverStampedMessage = { ...parsedMessage.data, timestamp: receivedAt };
+	recordDeviceMessage(source, serverStampedMessage, receivedAt);
 
-	if (!parsedMessage.data.requestId) {
+	logger.debug(
+		{
+			event: "feeder.mqtt.device_timestamp_ignored",
+			topic,
+			requestId: serverStampedMessage.requestId,
+			deviceId: serverStampedMessage.deviceId,
+			deviceTimestamp: parsedMessage.data.timestamp,
+			receivedAt,
+			driftMs: receivedAt - parsedMessage.data.timestamp,
+		},
+		"Using backend receive time for feeder device timestamp",
+	);
+
+	if (!serverStampedMessage.requestId) {
 		return;
 	}
 
 	if (
-		parsedMessage.data.state === "accepted" ||
-		parsedMessage.data.state === "busy" ||
-		parsedMessage.data.state === "failed"
+		serverStampedMessage.state === "accepted" ||
+		serverStampedMessage.state === "busy" ||
+		serverStampedMessage.state === "failed"
 	) {
-		resolvePendingAcknowledgement(parsedMessage.data.requestId, parsedMessage.data);
+		resolvePendingAcknowledgement(serverStampedMessage.requestId, serverStampedMessage);
 	}
 }
 

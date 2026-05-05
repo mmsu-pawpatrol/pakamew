@@ -68,7 +68,14 @@ export const FeederCommandPayloadSchema = z
 /** MQTT command payload sent to the feeder device. */
 export type FeederCommandPayload = z.infer<typeof FeederCommandPayloadSchema>;
 
-/** MQTT status/event message schema emitted by the feeder device. */
+/**
+ * MQTT status/event message schema emitted by the feeder device.
+ *
+ * @remarks
+ * The device-supplied timestamp is accepted for payload compatibility, but the
+ * backend currently replaces it with the server receive time before storing
+ * operational state because ESP32 clocks may be unsynchronized.
+ */
 export const FeederDeviceMessageSchema = z.object({
 	requestId: z.string().min(1).optional(),
 	deviceId: z.string().min(1),

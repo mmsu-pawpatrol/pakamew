@@ -2,6 +2,43 @@
 
 This document centralizes temporary or implementation-specific workarounds used in the codebase.
 
+## [2026/05/05] Feeder device timestamps are backend-stamped
+
+### Context
+
+ESP32 feeder status and event messages include a `timestamp` field that was
+being used to update dispense-attempt `respondedAt` and `completedAt` records.
+
+### Symptom
+
+Donation event feeds could show dispense activity near the Unix epoch, such as
+`1970-01-01T00:03:38.126Z`, when the ESP32 had not synchronized its clock.
+
+### Root Cause
+
+The backend trusted device-provided timestamps from feeder MQTT messages even
+though the device clock is not currently guaranteed to be internet-synced.
+
+### Current Workaround
+
+- Continue accepting the device `timestamp` field for MQTT payload compatibility.
+- Replace the device timestamp with `Date.now()` when the backend records a
+  feeder status or event message.
+- Use that backend receive time for the latest feeder snapshot, last command
+  response summary, and later donation dispense reconciliation.
+
+### Impact
+
+- New dispense-attempt `respondedAt` and `completedAt` values reflect when the
+  backend received the feeder message rather than when the ESP32 thought the
+  event occurred.
+- Existing rows that already contain epoch-like timestamps are not backfilled.
+
+### Revisit Conditions
+
+Re-evaluate this workaround after feeder firmware establishes reliable network
+time synchronization and the backend can validate acceptable clock drift.
+
 ## [2026/05/05] app-web build uses checked-in oRPC contract artifact
 
 ### Context

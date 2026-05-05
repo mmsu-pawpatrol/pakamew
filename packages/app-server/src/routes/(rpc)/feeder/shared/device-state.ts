@@ -60,12 +60,22 @@ export function recordTriggerResult(response: FeederTriggerResponse) {
 	};
 }
 
-/** Record a feeder status/event message as the latest known device state. */
-export function recordDeviceMessage(source: "status" | "events", message: FeederDeviceMessage) {
+/**
+ * Record a feeder status/event message as the latest known device state.
+ *
+ * @param source - MQTT topic family that produced the message.
+ * @param message - Parsed device message whose device timestamp is intentionally ignored.
+ * @param receivedAt - Backend receive time to store as the operational event timestamp.
+ */
+export function recordDeviceMessage(
+	source: "status" | "events",
+	message: FeederDeviceMessage,
+	receivedAt = Date.now(),
+) {
 	currentDeviceSnapshot.requestId = message.requestId ?? null;
 	currentDeviceSnapshot.state = message.state;
 	currentDeviceSnapshot.busy = message.busy;
-	currentDeviceSnapshot.timestamp = message.timestamp;
+	currentDeviceSnapshot.timestamp = receivedAt;
 	currentDeviceSnapshot.mode = message.mode ?? null;
 	currentDeviceSnapshot.angle = message.angle ?? null;
 	currentDeviceSnapshot.openDurationMs = message.openDurationMs ?? null;
@@ -83,7 +93,7 @@ export function recordDeviceMessage(source: "status" | "events", message: Feeder
 	lastCommandSummary = {
 		...lastCommandSummary,
 		acknowledgementState: message.state,
-		respondedAt: message.timestamp,
+		respondedAt: receivedAt,
 		message: message.message ?? lastCommandSummary.message,
 		result: message.state === "busy" ? "busy" : message.state === "accepted" ? "accepted" : lastCommandSummary.result,
 	};
