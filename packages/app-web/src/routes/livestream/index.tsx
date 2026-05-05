@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChatPanel } from "./-chat-panel";
 import { EventsPanel } from "./-events-panel";
 
 export const Route = createFileRoute("/livestream/")({
@@ -49,17 +48,11 @@ function LivestreamPage() {
 					<TabsList
 						variant="line"
 						className="w-full shrink-0 rounded-none border-b pt-1 group-data-horizontal/tabs:h-11">
-						<TabsTrigger value="chat" className="h-8">
-							Live Chat
-						</TabsTrigger>
 						<TabsTrigger value="events" className="h-8">
 							Events
 						</TabsTrigger>
 					</TabsList>
 
-					<TabsContent value="chat" className="min-h-0 flex-1 overflow-hidden sm:px-6">
-						<ChatPanel />
-					</TabsContent>
 					<TabsContent value="events" className="min-h-0 flex-1 overflow-hidden sm:px-6">
 						<EventsPanel />
 					</TabsContent>
