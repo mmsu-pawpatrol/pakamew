@@ -44,7 +44,7 @@ function LivestreamPage() {
 			</section>
 
 			<section className="min-h-0 flex-1 overflow-hidden lg:flex lg:min-h-0 lg:flex-col lg:self-stretch lg:pt-0">
-				<Tabs defaultValue="chat" className="h-full min-h-0 gap-0 overflow-hidden">
+				<Tabs defaultValue="events" className="h-full min-h-0 gap-0 overflow-hidden">
 					<TabsList
 						variant="line"
 						className="w-full shrink-0 rounded-none border-b pt-1 group-data-horizontal/tabs:h-11">
