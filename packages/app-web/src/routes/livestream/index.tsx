@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { HeartHandshakeIcon } from "lucide-react";
 import { EventsPanel } from "./-events-panel";
 
 export const Route = createFileRoute("/livestream/")({
@@ -56,6 +57,17 @@ function LivestreamPage() {
 					<TabsContent value="events" className="min-h-0 flex-1 overflow-hidden sm:px-6">
 						<EventsPanel />
 					</TabsContent>
+
+					<div className="shrink-0 border-t px-4 py-4 sm:px-6">
+						<div className="flex justify-center">
+							<Button asChild size="lg" className="w-full max-w-sm">
+								<Link to="/donate">
+									<HeartHandshakeIcon data-icon="inline-start" />
+									Donate Now
+								</Link>
+							</Button>
+						</div>
+					</div>
 				</Tabs>
 			</section>
 		</main>
