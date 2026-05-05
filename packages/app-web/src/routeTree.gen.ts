@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DonateRouteRouteImport } from './routes/donate/route'
 import { Route as Char91_demoChar93RouteRouteImport } from './routes/[_demo]/route'
@@ -20,6 +21,11 @@ import { Route as DonateSuccessRouteImport } from './routes/donate/success'
 import { Route as Char91_demoChar93LivestreamRouteImport } from './routes/[_demo]/livestream'
 import { Route as Char91_demoChar93DispenserControlRouteImport } from './routes/[_demo]/dispenser-control'
 
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/reports': typeof ReportsRoute
   '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/reports': typeof ReportsRoute
   '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/_demo': typeof Char91_demoChar93RouteRouteWithChildren
   '/donate': typeof DonateRouteRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/reports': typeof ReportsRoute
   '/_demo/dispenser-control': typeof Char91_demoChar93DispenserControlRoute
   '/_demo/livestream': typeof Char91_demoChar93LivestreamRoute
   '/donate/success': typeof DonateSuccessRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/_demo'
     | '/donate'
     | '/profile'
+    | '/reports'
     | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_demo'
     | '/profile'
+    | '/reports'
     | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_demo'
     | '/donate'
     | '/profile'
+    | '/reports'
     | '/_demo/dispenser-control'
     | '/_demo/livestream'
     | '/donate/success'
@@ -152,11 +164,19 @@ export interface RootRouteChildren {
   Char91_demoChar93RouteRoute: typeof Char91_demoChar93RouteRouteWithChildren
   DonateRouteRoute: typeof DonateRouteRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
+  ReportsRoute: typeof ReportsRoute
   LivestreamIndexRoute: typeof LivestreamIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -277,6 +297,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91_demoChar93RouteRoute: Char91_demoChar93RouteRouteWithChildren,
   DonateRouteRoute: DonateRouteRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
+  ReportsRoute: ReportsRoute,
   LivestreamIndexRoute: LivestreamIndexRoute,
 }
 export const routeTree = rootRouteImport

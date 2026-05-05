@@ -7,6 +7,7 @@
 
 import { create } from "./checkout-session";
 import { events } from "./events";
+import { report } from "./report";
 import { status } from "./status";
 
 interface CheckoutSessionService extends Record<string, typeof create> {
@@ -20,7 +21,7 @@ const CheckoutSession: CheckoutSessionService = {
 	create,
 };
 
-type DonationServiceMethod = CheckoutSessionService | typeof events | typeof status;
+type DonationServiceMethod = CheckoutSessionService | typeof events | typeof report | typeof status;
 
 export interface DonationService extends Record<string, DonationServiceMethod> {
 	/**
@@ -34,6 +35,11 @@ export interface DonationService extends Record<string, DonationServiceMethod> {
 	events: typeof events;
 
 	/**
+	 * @see {@link report}
+	 */
+	report: typeof report;
+
+	/**
 	 * @see {@link status}
 	 */
 	status: typeof status;
@@ -43,6 +49,7 @@ export interface DonationService extends Record<string, DonationServiceMethod> {
 export const DonationService: DonationService = {
 	CheckoutSession,
 	events,
+	report,
 	status,
 };
 

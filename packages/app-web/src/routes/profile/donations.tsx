@@ -34,14 +34,17 @@ function ProfileDonationsPage() {
 						<h2 className="font-heading text-xl tracking-tight">All Donations</h2>
 					</div>
 
-					<DonationHistoryList
-						donations={donationHistoryQuery.data}
-						emptyDescription="New donations from the seeded test user will appear here automatically."
-						errorDescription="The donations page could not load the full test-user donation history right now."
-						isError={donationHistoryQuery.isError}
-						isPending={donationHistoryQuery.isPending}
-						skeletonCount={6}
-					/>
+					<div className="max-h-[34rem] overflow-y-auto pr-1 [scrollbar-width:thin]">
+						<DonationHistoryList
+							donations={donationHistoryQuery.data}
+							emptyDescription="New donations from the seeded test user will appear here automatically."
+							errorDescription="The donations page could not load the full test-user donation history right now."
+							isError={donationHistoryQuery.isError}
+							isPending={donationHistoryQuery.isPending}
+							skeletonCount={6}
+							variant="list"
+						/>
+					</div>
 				</section>
 			</div>
 		</main>

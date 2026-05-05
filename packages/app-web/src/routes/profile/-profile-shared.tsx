@@ -32,6 +32,8 @@ function getDonationTone(displayStatus: DonationEvent["displayStatus"]): string 
 	return displayStatus === "Dispensed" ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground";
 }
 
+type DonationHistoryVariant = "card" | "list";
+
 /** Shared profile hero used by the profile overview and donation history pages. */
 export function ProfileHero() {
 	return (
@@ -77,6 +79,7 @@ export function DonationHistoryList({
 	isError,
 	isPending,
 	skeletonCount,
+	variant = "card",
 }: {
 	donations: DonationEvent[] | undefined;
 	emptyDescription: string;
@@ -84,21 +87,13 @@ export function DonationHistoryList({
 	isError: boolean;
 	isPending: boolean;
 	skeletonCount: number;
+	variant?: DonationHistoryVariant;
 }) {
 	return (
-		<div className="flex flex-col gap-3">
+		<div className={cn("flex flex-col", variant === "card" ? "gap-3" : undefined)}>
 			{isPending
 				? Array.from({ length: skeletonCount }, (_, index) => (
-						<Card key={`profile-donation-skeleton-${index}`} size="sm" className="gap-0 py-0">
-							<CardContent className="flex items-center gap-3 px-4 py-4">
-								<Skeleton className="size-10 rounded-full" />
-								<div className="flex min-w-0 flex-1 flex-col gap-2">
-									<Skeleton className="h-4 w-28" />
-									<Skeleton className="h-4 w-20" />
-								</div>
-								<Skeleton className="h-5 w-16" />
-							</CardContent>
-						</Card>
+						<DonationHistorySkeletonRow key={`profile-donation-skeleton-${index}`} index={index} variant={variant} />
 					))
 				: null}
 
@@ -122,19 +117,82 @@ export function DonationHistoryList({
 				</Empty>
 			) : null}
 
-			{donations?.map((donation) => (
-				<DonationHistoryRow key={donation.id} donation={donation} />
+			{donations?.map((donation, index) => (
+				<DonationHistoryRow key={donation.id} donation={donation} index={index} variant={variant} />
 			))}
 		</div>
 	);
 }
 
-function DonationHistoryRow({ donation }: { donation: DonationEvent }) {
+function DonationHistorySkeletonRow({ index, variant }: { index: number; variant: DonationHistoryVariant }) {
+	if (variant === "list") {
+		return (
+			<div className="border-border flex items-center gap-3 border-b py-3 last:border-b-0">
+				<Skeleton className="h-4 w-5 shrink-0" />
+				<Skeleton className="size-9 shrink-0 rounded-full" />
+				<div className="flex min-w-0 flex-1 flex-col gap-2">
+					<Skeleton className="h-4 w-28" />
+					<Skeleton className="h-3 w-24" />
+				</div>
+				<Skeleton className="h-5 w-16 shrink-0" />
+			</div>
+		);
+	}
+
+	return (
+		<Card key={`profile-donation-skeleton-${index}`} size="sm" className="gap-0 py-0">
+			<CardContent className="flex items-center gap-3 px-4 py-4">
+				<Skeleton className="size-10 rounded-full" />
+				<div className="flex min-w-0 flex-1 flex-col gap-2">
+					<Skeleton className="h-4 w-28" />
+					<Skeleton className="h-4 w-20" />
+				</div>
+				<Skeleton className="h-5 w-16" />
+			</CardContent>
+		</Card>
+	);
+}
+
+function DonationHistoryRow({
+	donation,
+	index,
+	variant,
+}: {
+	donation: DonationEvent;
+	index: number;
+	variant: DonationHistoryVariant;
+}) {
 	const donationDateTime = formatDonationEventDateTime(donation.occurredAt);
+
+	if (variant === "list") {
+		return (
+			<div className="border-border flex items-center gap-3 border-b py-3 last:border-b-0">
+				<span className="text-muted-foreground font-heading w-5 shrink-0 text-center text-xs font-bold tabular-nums">
+					{index + 1}
+				</span>
+				<span
+					className={cn(
+						"flex size-9 shrink-0 items-center justify-center rounded-full [&_svg]:size-4",
+						getDonationTone(donation.displayStatus),
+					)}>
+					<PawPrintIcon />
+				</span>
+				<span className="flex min-w-0 flex-1 flex-col">
+					<span className="truncate text-sm font-semibold">You Donated</span>
+					<time dateTime={donation.occurredAt} className="text-muted-foreground text-xs">
+						{donationDateTime}
+					</time>
+				</span>
+				<span className="text-primary font-heading shrink-0 text-sm font-extrabold">
+					{PesoFormatter.format(donation.amount)}
+				</span>
+			</div>
+		);
+	}
 
 	return (
 		<Card size="sm" className="gap-0 py-0">
-			<CardContent className="flex items-center gap-3 px-4 py-4">
+			<CardContent className="flex items-center gap-3 px-4">
 				<Avatar className="after:border-border size-10">
 					<AvatarFallback className={cn("text-foreground [&_svg]:size-5", getDonationTone(donation.displayStatus))}>
 						<PawPrintIcon />
