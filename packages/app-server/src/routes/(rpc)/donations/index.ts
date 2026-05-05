@@ -6,6 +6,7 @@
  */
 
 import { create } from "./checkout-session";
+import { events } from "./events";
 import { status } from "./status";
 
 interface CheckoutSessionService extends Record<string, typeof create> {
@@ -19,13 +20,18 @@ const CheckoutSession: CheckoutSessionService = {
 	create,
 };
 
-type DonationServiceMethod = CheckoutSessionService | typeof status;
+type DonationServiceMethod = CheckoutSessionService | typeof events | typeof status;
 
 export interface DonationService extends Record<string, DonationServiceMethod> {
 	/**
 	 * Checkout-session flows for public donations.
 	 */
 	CheckoutSession: CheckoutSessionService;
+
+	/**
+	 * @see {@link events}
+	 */
+	events: typeof events;
 
 	/**
 	 * @see {@link status}
@@ -36,6 +42,7 @@ export interface DonationService extends Record<string, DonationServiceMethod> {
 /** Donation service methods published by the root oRPC router. */
 export const DonationService: DonationService = {
 	CheckoutSession,
+	events,
 	status,
 };
 

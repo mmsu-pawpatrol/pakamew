@@ -1,59 +1,29 @@
 import { LivestreamPlayer } from "@/components/livestream-player";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDonationEventRelativeTime, useDonationEvents } from "@/lib/donation-events";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
-import { BoneIcon, HeartHandshakeIcon, PawPrintIcon, ShieldCheckIcon, UserRoundIcon } from "lucide-react";
+import { BoneIcon, CircleAlertIcon, HeartHandshakeIcon, PawPrintIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
 	component: Homepage,
 });
 
-interface ActivityItem {
-	id: string;
-	title: string;
-	description: string;
-	time: string;
-	icon: LucideIcon;
+function getHomepageEventIcon(displayStatus: string): LucideIcon {
+	return displayStatus === "Dispensed" ? BoneIcon : HeartHandshakeIcon;
 }
 
-// Static recent activity entries for the homepage timeline section.
-const RECENT_ACTIVITY: ActivityItem[] = [
-	{
-		id: "feeding-1",
-		title: "Feeding Completed",
-		description: "Morning feeding was completed for Shelter 2.",
-		time: "5 minutes ago",
-		icon: BoneIcon,
-	},
-	{
-		id: "health-1",
-		title: "Health Check Logged",
-		description: "Daily wellness check added for Cocoa.",
-		time: "28 minutes ago",
-		icon: ShieldCheckIcon,
-	},
-	{
-		id: "rescue-1",
-		title: "New Rescue Intake",
-		description: "A rescued puppy was registered and placed in quarantine.",
-		time: "1 hour ago",
-		icon: PawPrintIcon,
-	},
-	{
-		id: "adoption-1",
-		title: "Profile Updated",
-		description: "Adoption profile details were updated for Mango.",
-		time: "2 hours ago",
-		icon: UserRoundIcon,
-	},
-];
-
 function Homepage() {
+	const eventsQuery = useDonationEvents({ limit: 4 });
+
 	return (
 		<>
 			<main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-8 lg:gap-8 lg:pt-10">
@@ -138,11 +108,48 @@ function Homepage() {
 					</div>
 
 					<div className="flex flex-col gap-3 sm:gap-4">
-						{RECENT_ACTIVITY.map((activity) => {
-							const Icon = activity.icon;
+						{eventsQuery.isPending
+							? Array.from({ length: 4 }, (_, index) => (
+									<Card key={`recent-activity-skeleton-${index}`} size="sm" className="gap-0 py-0">
+										<CardContent className="flex items-start gap-3 px-4 py-4 sm:px-5">
+											<Skeleton className="size-9 shrink-0 rounded-full" />
+											<div className="flex min-w-0 flex-1 flex-col gap-2">
+												<Skeleton className="h-4 w-40" />
+												<Skeleton className="h-px w-full" />
+												<Skeleton className="h-4 w-full" />
+											</div>
+										</CardContent>
+									</Card>
+								))
+							: null}
+
+						{eventsQuery.isError ? (
+							<Alert variant="destructive">
+								<CircleAlertIcon />
+								<AlertTitle>Recent activity is unavailable</AlertTitle>
+								<AlertDescription>The homepage could not load the latest feeder events right now.</AlertDescription>
+							</Alert>
+						) : null}
+
+						{eventsQuery.data?.length === 0 ? (
+							<Empty className="py-10">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										<PawPrintIcon />
+									</EmptyMedia>
+									<EmptyTitle>No feeder events yet</EmptyTitle>
+									<EmptyDescription>
+										Completed donations will appear here once activity reaches the station.
+									</EmptyDescription>
+								</EmptyHeader>
+							</Empty>
+						) : null}
+
+						{eventsQuery.data?.map((event) => {
+							const Icon = getHomepageEventIcon(event.displayStatus);
+
 							return (
-								<Card key={activity.id} size="sm" className="gap-0 py-0">
-									{/* Activity entry with icon and metadata */}
+								<Card key={event.id} size="sm" className="gap-0 py-0">
 									<CardContent className="flex items-start gap-3 px-4 py-4 sm:px-5">
 										<div className="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-full [&_svg]:size-4">
 											<Icon />
@@ -150,11 +157,13 @@ function Homepage() {
 
 										<div className="flex min-w-0 flex-1 flex-col gap-2">
 											<div className="flex flex-wrap items-center justify-between gap-2">
-												<h3 className="text-sm font-medium">{activity.title}</h3>
-												<span className="text-muted-foreground text-xs">{activity.time}</span>
+												<h3 className="text-sm font-medium">{event.title}</h3>
+												<span className="text-muted-foreground text-xs">
+													{formatDonationEventRelativeTime(event.occurredAt)}
+												</span>
 											</div>
 											<Separator />
-											<p className="text-muted-foreground text-sm">{activity.description}</p>
+											<p className="text-muted-foreground text-sm">{event.description}</p>
 										</div>
 									</CardContent>
 								</Card>

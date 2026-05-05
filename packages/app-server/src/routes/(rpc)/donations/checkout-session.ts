@@ -8,6 +8,7 @@
 
 import { ORPCError, os } from "@orpc/server";
 import { DONATION_TIERS } from "@pakamew/shared/lib/donation";
+import { ShortTermDefaultDonationUserId } from "@pakamew/shared/lib/testing";
 import z from "zod";
 import { DispenseStatus, DonationStatus } from "../../../../prisma/generated/client";
 import { getEnv } from "../../../env";
@@ -70,6 +71,7 @@ export const create = os
 		const donation = await DonationRepo.create({
 			data: {
 				id: donationId,
+				userId: ShortTermDefaultDonationUserId,
 				name: normalizedDonorName,
 				amount: tier.amount,
 				status: DonationStatus.PENDING,
