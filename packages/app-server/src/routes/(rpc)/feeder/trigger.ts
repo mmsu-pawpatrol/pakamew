@@ -1,10 +1,15 @@
+/**
+ * Public feeder trigger procedure.
+ */
+
 import { os } from "@orpc/server";
 import { getLogger } from "../../../instrumentation/core";
+import { publishFeederCommand } from "./shared";
 import { FeederTriggerInputSchema, FeederTriggerResponseSchema } from "./shared/contracts";
-import { publishFeederCommand } from "./shared/mqtt-relay";
 
 const logger = getLogger().child({ scope: "feeder.trigger" });
 
+/** Publish a feeder command and return the relay acknowledgement result. */
 export const trigger = os
 	.route({ method: "POST", path: "/feeder/trigger" })
 	.input(FeederTriggerInputSchema)

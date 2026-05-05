@@ -2,6 +2,39 @@
 
 This document centralizes temporary or implementation-specific workarounds used in the codebase.
 
+## [2026/05/05] app-web build uses checked-in oRPC contract artifact
+
+### Context
+
+`packages/app-web/src/lib/orpc.ts` imports `packages/app-web/src/lib/orpc-contract.generated.json` as the runtime contract consumed by the OpenAPI client link.
+
+### Symptom
+
+`pnpm build:web` can fail in CI while Vite regenerates the contract through `packages/app-server/scripts/orpc-contract.ts`, because that path imports the app-server route tree and may require backend-only environment variables such as `DATABASE_URL`.
+
+### Root Cause
+
+The web build was trying to regenerate a server-derived artifact during frontend build time instead of treating that artifact as a checked-in input.
+
+### Current Workaround
+
+- Commit `packages/app-web/src/lib/orpc-contract.generated.json` to git.
+- Do not regenerate the contract during `vite build`.
+- Keep Vite dev-server regeneration enabled so local route changes can still refresh the artifact during active development.
+
+### Impact
+
+- Fixes CI builds that do not have full backend runtime env available.
+- Makes the checked-in contract artifact part of normal source control review.
+- Introduces a staleness risk if backend route metadata changes and the generated JSON is not refreshed before commit.
+
+### Revisit Conditions
+
+Re-evaluate this workaround if:
+
+- contract generation is refactored to avoid importing backend runtime-only dependencies, or
+- the project adds a dedicated, env-independent contract generation/check flow for CI.
+
 ## [2026/04/16] Better Auth React client export needs a named local type
 
 ### Context

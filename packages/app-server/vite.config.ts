@@ -23,6 +23,7 @@ export default defineConfig(({ command }) => ({
 	server: {
 		host: env.HOST,
 		port: env.PORT,
+		cors: false,
 	},
 	build: {
 		emptyOutDir: true,

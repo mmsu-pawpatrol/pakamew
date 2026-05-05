@@ -8,5 +8,5 @@
 		"types": ["node"],
 		"composite": true
 	},
-	"include": ["*.config.ts", "src", "prisma/generated"]
+	"include": ["*.config.ts", "scripts", "src", "prisma/generated"]
 }

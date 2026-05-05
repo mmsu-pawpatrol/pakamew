@@ -1,8 +1,16 @@
+/**
+ * Feeder RPC and MQTT contract schemas.
+ */
+
 import z from "zod";
 
+/** Supported feeder command modes. */
 export const FeederModeSchema = z.enum(["angle", "duration"]);
+
+/** Supported feeder command mode. */
 export type FeederMode = z.infer<typeof FeederModeSchema>;
 
+/** Public feeder trigger input schema. */
 export const FeederTriggerInputSchema = z.discriminatedUnion("mode", [
 	z.object({
 		mode: z.literal("angle"),
@@ -13,14 +21,23 @@ export const FeederTriggerInputSchema = z.discriminatedUnion("mode", [
 		openDurationMs: z.number().int().min(200).max(30000),
 	}),
 ]);
+
+/** Public feeder trigger input. */
 export type FeederTriggerInput = z.infer<typeof FeederTriggerInputSchema>;
 
+/** Relay acknowledgement result schema. */
 export const FeederTriggerResultSchema = z.enum(["accepted", "busy", "timeout", "error"]);
+
+/** Relay acknowledgement result. */
 export type FeederTriggerResult = z.infer<typeof FeederTriggerResultSchema>;
 
+/** Device-reported feeder state schema. */
 export const FeederDeviceStateSchema = z.enum(["accepted", "busy", "completed", "failed", "booted", "offline"]);
+
+/** Device-reported feeder state. */
 export type FeederDeviceState = z.infer<typeof FeederDeviceStateSchema>;
 
+/** MQTT command payload schema sent to the feeder device. */
 export const FeederCommandPayloadSchema = z
 	.object({
 		requestId: z.uuid(),
@@ -47,8 +64,11 @@ export const FeederCommandPayloadSchema = z
 			});
 		}
 	});
+
+/** MQTT command payload sent to the feeder device. */
 export type FeederCommandPayload = z.infer<typeof FeederCommandPayloadSchema>;
 
+/** MQTT status/event message schema emitted by the feeder device. */
 export const FeederDeviceMessageSchema = z.object({
 	requestId: z.string().min(1).optional(),
 	deviceId: z.string().min(1),
@@ -60,16 +80,22 @@ export const FeederDeviceMessageSchema = z.object({
 	openDurationMs: z.number().int().min(200).max(30000).optional(),
 	message: z.string().min(1).optional(),
 });
+
+/** MQTT status/event message emitted by the feeder device. */
 export type FeederDeviceMessage = z.infer<typeof FeederDeviceMessageSchema>;
 
+/** MQTT target topics for the configured feeder device. */
 export const FeederTargetSchema = z.object({
 	deviceId: z.string().min(1),
 	commandTopic: z.string().min(1),
 	statusTopic: z.string().min(1),
 	eventsTopic: z.string().min(1),
 });
+
+/** MQTT target topics for the configured feeder device. */
 export type FeederTarget = z.infer<typeof FeederTargetSchema>;
 
+/** Last command summary schema exposed in feeder status. */
 export const FeederCommandSummarySchema = z.object({
 	requestId: z.string().min(1),
 	mode: FeederModeSchema,
@@ -81,8 +107,11 @@ export const FeederCommandSummarySchema = z.object({
 	respondedAt: z.number().int().nonnegative().nullable(),
 	message: z.string().nullable(),
 });
+
+/** Last command summary exposed in feeder status. */
 export type FeederCommandSummary = z.infer<typeof FeederCommandSummarySchema>;
 
+/** Public feeder status response schema. */
 export const FeederStatusSchema = z.object({
 	deviceId: z.string().min(1),
 	broker: z.object({
@@ -93,6 +122,7 @@ export const FeederStatusSchema = z.object({
 		eventsTopic: z.string().min(1),
 	}),
 	latestKnownDeviceState: z.object({
+		requestId: z.string().min(1).nullable(),
 		state: z.union([FeederDeviceStateSchema, z.literal("unknown")]),
 		busy: z.boolean(),
 		timestamp: z.number().int().nonnegative().nullable(),
@@ -121,8 +151,11 @@ export const FeederStatusSchema = z.object({
 		}),
 	}),
 });
+
+/** Public feeder status response. */
 export type FeederStatus = z.infer<typeof FeederStatusSchema>;
 
+/** Public feeder trigger response schema. */
 export const FeederTriggerResponseSchema = z.object({
 	requestId: z.uuid(),
 	deviceId: z.string().min(1),
@@ -136,4 +169,6 @@ export const FeederTriggerResponseSchema = z.object({
 	message: z.string().nullable(),
 	target: FeederTargetSchema,
 });
+
+/** Public feeder trigger response. */
 export type FeederTriggerResponse = z.infer<typeof FeederTriggerResponseSchema>;
