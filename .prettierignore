@@ -9,3 +9,4 @@ generated
 *lock.yml
 *.gen.ts
 .tanstack
+*.generated.json
