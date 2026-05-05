@@ -1,4 +1,4 @@
-import { queryEnvFromSchema } from "./resolver";
+import { queryEnvFromSchema } from "./resolver.ts";
 import type { AnyObjectSchema, BoundGetEnv, UnboundGetEnv } from "./types";
 
 export type { AnyObjectSchema, BoundGetEnv, UnboundGetEnv } from "./types";
