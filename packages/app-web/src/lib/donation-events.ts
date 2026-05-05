@@ -1,8 +1,12 @@
 import { useORPCClient, type ORPCClient } from "@/lib/orpc";
 import { useQuery } from "@tanstack/react-query";
 
-const RelativeTimeFormatter = new Intl.RelativeTimeFormat("en", {
-	numeric: "auto",
+const EventDateTimeFormatter = new Intl.DateTimeFormat("en-PH", {
+	month: "short",
+	day: "numeric",
+	year: "numeric",
+	hour: "numeric",
+	minute: "2-digit",
 });
 
 /** Donation-backed feeder event returned by the public events route. */
@@ -25,15 +29,7 @@ export function useDonationEvents({ limit, userId }: UseDonationEventsOptions) {
 	});
 }
 
-/** Format an event timestamp into short relative donor-facing copy. */
-export function formatDonationEventRelativeTime(occurredAt: string): string {
-	const deltaSeconds = Math.round((new Date(occurredAt).getTime() - Date.now()) / 1000);
-	const absoluteDeltaSeconds = Math.abs(deltaSeconds);
-
-	if (absoluteDeltaSeconds < 60) return RelativeTimeFormatter.format(deltaSeconds, "second");
-	if (absoluteDeltaSeconds < 3_600) return RelativeTimeFormatter.format(Math.round(deltaSeconds / 60), "minute");
-	if (absoluteDeltaSeconds < 86_400) return RelativeTimeFormatter.format(Math.round(deltaSeconds / 3_600), "hour");
-	if (absoluteDeltaSeconds < 2_592_000) return RelativeTimeFormatter.format(Math.round(deltaSeconds / 86_400), "day");
-
-	return RelativeTimeFormatter.format(Math.round(deltaSeconds / 2_592_000), "month");
+/** Format an event timestamp as absolute donor-facing copy up to minute precision. */
+export function formatDonationEventDateTime(occurredAt: string): string {
+	return EventDateTimeFormatter.format(new Date(occurredAt));
 }

@@ -1,7 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDonationEventRelativeTime, useDonationEvents } from "@/lib/donation-events";
+import { formatDonationEventDateTime, useDonationEvents } from "@/lib/donation-events";
 import { CircleAlertIcon, PawPrintIcon } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
 
@@ -67,9 +67,9 @@ export function EventsPanel() {
 						<li key={event.id} className="px-4 py-3">
 							<div className="mb-1 flex items-center justify-between gap-2">
 								<p className="text-sm font-medium">{event.title}</p>
-								<span className="text-muted-foreground text-xs">
-									{formatDonationEventRelativeTime(event.occurredAt)}
-								</span>
+								<time dateTime={event.occurredAt} className="text-muted-foreground text-xs">
+									{formatDonationEventDateTime(event.occurredAt)}
+								</time>
 							</div>
 							<p className="text-muted-foreground text-sm">{event.description}</p>
 						</li>

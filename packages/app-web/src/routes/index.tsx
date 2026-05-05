@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDonationEventRelativeTime, useDonationEvents } from "@/lib/donation-events";
+import { formatDonationEventDateTime, useDonationEvents } from "@/lib/donation-events";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import { BoneIcon, CircleAlertIcon, HeartHandshakeIcon, PawPrintIcon } from "lucide-react";
@@ -158,9 +158,9 @@ function Homepage() {
 										<div className="flex min-w-0 flex-1 flex-col gap-2">
 											<div className="flex flex-wrap items-center justify-between gap-2">
 												<h3 className="text-sm font-medium">{event.title}</h3>
-												<span className="text-muted-foreground text-xs">
-													{formatDonationEventRelativeTime(event.occurredAt)}
-												</span>
+												<time dateTime={event.occurredAt} className="text-muted-foreground text-xs">
+													{formatDonationEventDateTime(event.occurredAt)}
+												</time>
 											</div>
 											<Separator />
 											<p className="text-muted-foreground text-sm">{event.description}</p>

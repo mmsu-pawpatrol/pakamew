@@ -24,6 +24,7 @@
 		"@tanstack/react-router-devtools": "^1.163.2",
 		"@tanstack/router-plugin": "^1.163.2",
 		"@videojs/react": "10.0.0-beta.22",
+		"chart.js": "^4.5.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
