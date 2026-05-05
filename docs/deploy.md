@@ -39,16 +39,16 @@ Notes:
 
 Client-facing network contract:
 
-- `app-server` is exposed directly on `http://<host-or-ip>:3001`
-- `livestream-node` is exposed directly on `ws://<host-or-ip>:3000/viewer` for viewers and `ws://<host-or-ip>:3000/esp32-stream` for the shelter camera
-- when routed through Cloudflare on `server.pakamew.site`, use `wss://server.pakamew.site:2083/viewer` for viewers and `wss://server.pakamew.site:2083/esp32-stream` for the camera path
-- OvenMediaEngine is exposed directly on `http://<host-or-ip>:3333/app/esp32/master.m3u8` for LL-HLS playback, plus its RTMP/WebRTC-related ports
+- `app-server` is exposed through Traefik at `https://api.pakamew.site`
+- `livestream-node` is exposed through Traefik at `wss://lsg.pakamew.site/viewer` for viewers and `wss://lsg.pakamew.site/esp32-stream` for the shelter camera
+- OvenMediaEngine LL-HLS/WebRTC signaling is exposed through Traefik at `https://ls.pakamew.site/app/esp32/master.m3u8`
+- Cloudflare should proxy those three hostnames to the same origin server on standard HTTP/HTTPS ports
 
 Ingress behavior:
 
 - `app-server` and `livestream-node` are not published directly from their own containers
-- Traefik owns the public `:3001` and `:3000` ports and forwards those requests to the internal services
-- OvenMediaEngine remains directly published on its own ports because its protocol surface is broader than the HTTP/WebSocket apps
+- Traefik owns the public `:80` and `:443` ports, matches requests by `Host(...)`, and forwards them to the internal service ports
+- OvenMediaEngine LL-HLS/WebRTC signaling is routed through Traefik, while RTMP/SRT/OVT/TURN/ICE remain on their own OME ports because that protocol surface is broader than normal HTTP/WebSocket traffic
 
 How each component uses those endpoints:
 
@@ -56,7 +56,7 @@ How each component uses those endpoints:
 - The web app talks to `app-server` using `VITE_API_URL`
 - The web app plays livestream video from OvenMediaEngine using `VITE_LIVESTREAM_PUBLIC_HLS_URL`
 - The web app can also use `livestream-node` directly through `VITE_LIVESTREAM_GATEWAY_WS_URL`
-- for the current Cloudflare-backed production host, those should be `https://server.pakamew.site:2087/app/esp32/master.m3u8` and `wss://server.pakamew.site:2083/viewer`
+- for the current Cloudflare-backed production host, those should be `https://api.pakamew.site`, `https://ls.pakamew.site/app/esp32/master.m3u8`, and `wss://lsg.pakamew.site/viewer`
 
 ## Local Testing
 
@@ -81,11 +81,12 @@ What this does:
 
 Useful local endpoints with the default `docker/production/.env.example` values:
 
-- Backend health check: `http://127.0.0.1:3001/api/health`
-- Backend API base URL for the web app: `http://127.0.0.1:3001`
-- Livestream gateway UI: `http://127.0.0.1:3000/`
-- Livestream gateway viewer websocket: `ws://127.0.0.1:3000/viewer`
-- Livestream gateway shelter websocket: `ws://<host-ip>:3000/esp32-stream`
+- Backend health check through Traefik: `http://127.0.0.1/api/health` with `Host: api.pakamew.site`
+- Backend API base URL for the web app: `https://api.pakamew.site`
+- Livestream gateway UI through Traefik: `http://127.0.0.1/` with `Host: lsg.pakamew.site`
+- Livestream gateway viewer websocket: `wss://lsg.pakamew.site/viewer`
+- Livestream gateway shelter websocket: `wss://lsg.pakamew.site/esp32-stream`
+- OvenMediaEngine LL-HLS through Traefik: `http://127.0.0.1/app/esp32/master.m3u8` with `Host: ls.pakamew.site`
 - OvenMediaEngine LL-HLS: `http://127.0.0.1:3333/app/esp32/master.m3u8`
 - Traefik dashboard: `http://127.0.0.1:8080`
 - Grafana Alloy UI: `http://127.0.0.1:12345`
@@ -94,10 +95,10 @@ Useful local endpoints with the default `docker/production/.env.example` values:
 
 Notes for local testing:
 
-- Use `http://127.0.0.1:3001/api/health` as the first backend smoke test.
-- The livestream gateway serves its test page at `http://127.0.0.1:3000/`.
-- Browser viewers connect through `ws://127.0.0.1:3000/viewer` or `ws://<host-ip>:3000/viewer`.
-- The shelter camera connects through `ws://<host-ip>:3000/esp32-stream`.
+- Use `curl -H 'Host: api.pakamew.site' http://127.0.0.1/api/health` as the first backend smoke test.
+- The livestream gateway serves its test page through Traefik with `Host: lsg.pakamew.site`.
+- Browser viewers connect through `wss://lsg.pakamew.site/viewer` in production.
+- The shelter camera connects through `wss://lsg.pakamew.site/esp32-stream` in production.
 - The default stack does not enable cAdvisor.
 - Docker Desktop’s WSL2 backend should use the default stack only. Grafana’s cAdvisor docs state that Docker Desktop on Windows/macOS runs Docker inside a Linux VM, which prevents direct host monitoring from the Alloy container.
 - Enable cAdvisor only on native Linux hosts by adding `docker/production/docker-compose.cadvisor.yml`.
@@ -162,11 +163,11 @@ For a production host that should use the CI-built images instead of rebuilding 
 2. Create `docker/production/.env`.
 3. Set the production-facing values:
 
-- public bind IPs and host ports for `app-server`, `livestream-node`, and OvenMediaEngine
-  - public bind IPs and host ports for Traefik's backend and livestream entrypoints
-  - real OvenMediaEngine published ports
-  - real `GRAFANA_CLOUD_OTLP_*` credentials and endpoint
-  - registry image tags if you want a pinned release instead of `latest`
+- public hostnames for `app-server`, `livestream-node`, and OvenMediaEngine
+- public bind IPs and host ports for Traefik's HTTP/HTTPS entrypoints
+- real OvenMediaEngine published ports
+- real `GRAFANA_CLOUD_OTLP_*` credentials and endpoint
+- registry image tags if you want a pinned release instead of `latest`
 
 4. Ensure `packages/app-server/.env` and `packages/livestream-node/.env` exist on the host.
 5. If the host is native Linux and you want cAdvisor container metrics, include `docker/production/docker-compose.cadvisor.yml`.
@@ -212,7 +213,7 @@ If you do not want cAdvisor on the production host, omit `docker/production/dock
 ## Notes
 
 - The `pakamew-prod` project name avoids name collisions with the dev stack, but the default published ports are the standard ones.
-- Traefik is the public front door for `app-server` on `:3001` and `livestream-node` on `:3000`, so Alloy can still observe Traefik access logs and request metrics for those services.
+- Traefik is the public front door for `app-server`, `livestream-node`, and OvenMediaEngine HTTP/WebSocket traffic on `:80` and `:443`, so Alloy can still observe Traefik access logs and request metrics for those services.
 - Traefik and Alloy dashboards stay localhost-only by default.
 - Alloy is connected to Docker and Traefik using:
   - `discovery.docker` + `loki.source.docker` for container logs

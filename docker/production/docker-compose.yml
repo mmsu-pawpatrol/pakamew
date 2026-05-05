@@ -2,7 +2,6 @@ name: pakamew-prod
 
 include:
   - ../docker-compose.app.yml
-  - ../docker-compose.ovenmediaengine.yml
 
 services:
   app-server:
@@ -43,10 +42,11 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: pakamew-prod-edge
-      traefik.http.routers.app-server.entrypoints: appserver
-      traefik.http.routers.app-server.rule: PathPrefix(`/`)
-      traefik.http.routers.app-server-tls.entrypoints: appserver
-      traefik.http.routers.app-server-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.app-server.entrypoints: web
+      traefik.http.routers.app-server.rule: Host(`${APP_SERVER_PUBLIC_HOST}`)
+      traefik.http.routers.app-server.service: app-server
+      traefik.http.routers.app-server-tls.entrypoints: websecure
+      traefik.http.routers.app-server-tls.rule: Host(`${APP_SERVER_PUBLIC_HOST}`)
       traefik.http.routers.app-server-tls.tls: "true"
       traefik.http.routers.app-server-tls.service: app-server
       traefik.http.services.app-server.loadbalancer.server.port: "${APP_SERVER_PORT}"
@@ -88,10 +88,11 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: pakamew-prod-edge
-      traefik.http.routers.livestream-node.entrypoints: livestream
-      traefik.http.routers.livestream-node.rule: PathPrefix(`/`)
-      traefik.http.routers.livestream-node-tls.entrypoints: livestream
-      traefik.http.routers.livestream-node-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.livestream-node.entrypoints: web
+      traefik.http.routers.livestream-node.rule: Host(`${LIVESTREAM_NODE_PUBLIC_HOST}`)
+      traefik.http.routers.livestream-node.service: livestream-node
+      traefik.http.routers.livestream-node-tls.entrypoints: websecure
+      traefik.http.routers.livestream-node-tls.rule: Host(`${LIVESTREAM_NODE_PUBLIC_HOST}`)
       traefik.http.routers.livestream-node-tls.tls: "true"
       traefik.http.routers.livestream-node-tls.service: livestream-node
       traefik.http.services.livestream-node.loadbalancer.server.port: "${LIVESTREAM_NODE_PORT}"
@@ -107,9 +108,6 @@ services:
     ports:
       - "${TRAEFIK_HTTP_BIND_IP}:${TRAEFIK_HTTP_PORT}:80"
       - "${TRAEFIK_HTTPS_BIND_IP}:${TRAEFIK_HTTPS_PORT}:443"
-      - "${TRAEFIK_APP_SERVER_BIND_IP}:${TRAEFIK_APP_SERVER_PORT}:3001"
-      - "${TRAEFIK_LIVESTREAM_BIND_IP}:${TRAEFIK_LIVESTREAM_PORT}:3000"
-      - "${TRAEFIK_OME_BIND_IP}:${TRAEFIK_OME_PORT}:2087"
       - "${TRAEFIK_DASHBOARD_BIND_IP}:${TRAEFIK_DASHBOARD_PORT}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -118,15 +116,31 @@ services:
       - edge
 
   ovenmediaengine:
+    image: airensoft/ovenmediaengine:v0.20.0
+    restart: unless-stopped
+    environment:
+      OME_HOST_IP: ${OME_HOST_IP:-127.0.0.1}
+      OME_CORS_ALLOWED_ORIGIN: ${OME_CORS_ALLOWED_ORIGIN:-*}
+    ports:
+      - "${OME_RTMP_BIND_IP:-0.0.0.0}:${OME_RTMP_HOST_PORT:-1935}:1935"
+      - "${OME_SRT_BIND_IP:-0.0.0.0}:${OME_SRT_HOST_PORT:-9999}:9999/udp"
+      - "${OME_OVT_BIND_IP:-0.0.0.0}:${OME_OVT_HOST_PORT:-9000}:9000"
+      - "${OME_SIGNAL_BIND_IP:-127.0.0.1}:${OME_SIGNAL_HOST_PORT:-3333}:3333"
+      - "${OME_TURN_BIND_IP:-0.0.0.0}:${OME_TURN_HOST_PORT:-3478}:3478"
+      - "${OME_ICE_BIND_IP:-0.0.0.0}:${OME_ICE_HOST_START_PORT:-10000}-${OME_ICE_HOST_END_PORT:-10009}:10000-10009/udp"
     expose:
       - "3333"
+    volumes:
+      - ../ovenmediaengine/Server.xml:/opt/ovenmediaengine/bin/origin_conf/Server.xml:ro
+      - pakamew-ome-edge-conf:/opt/ovenmediaengine/bin/edge_conf
     labels:
       traefik.enable: "true"
       traefik.docker.network: pakamew-prod-edge
-      traefik.http.routers.ovenmediaengine.entrypoints: ome
-      traefik.http.routers.ovenmediaengine.rule: PathPrefix(`/`)
-      traefik.http.routers.ovenmediaengine-tls.entrypoints: ome
-      traefik.http.routers.ovenmediaengine-tls.rule: PathPrefix(`/`)
+      traefik.http.routers.ovenmediaengine.entrypoints: web
+      traefik.http.routers.ovenmediaengine.rule: Host(`${OME_PUBLIC_HOST}`)
+      traefik.http.routers.ovenmediaengine.service: ovenmediaengine
+      traefik.http.routers.ovenmediaengine-tls.entrypoints: websecure
+      traefik.http.routers.ovenmediaengine-tls.rule: Host(`${OME_PUBLIC_HOST}`)
       traefik.http.routers.ovenmediaengine-tls.tls: "true"
       traefik.http.routers.ovenmediaengine-tls.service: ovenmediaengine
       traefik.http.services.ovenmediaengine.loadbalancer.server.port: "3333"
@@ -164,3 +178,4 @@ networks:
 
 volumes:
   alloy-data:
+  pakamew-ome-edge-conf:

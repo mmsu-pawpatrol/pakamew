@@ -11,12 +11,6 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
-  appserver:
-    address: ":3001"
-  livestream:
-    address: ":3000"
-  ome:
-    address: ":2087"
   traefik:
     address: ":8080"
   metrics:
