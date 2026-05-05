@@ -1,5 +1,5 @@
 import z from "zod";
-import { InjectedKeySymbol, type RuntimeInjectedSchema, type UnknownObject } from "./types";
+import { InjectedKeySymbol, type RuntimeInjectedSchema, type UnknownObject } from "./types.ts";
 
 /**
  * env query resolver used by `createGetEnv`.
