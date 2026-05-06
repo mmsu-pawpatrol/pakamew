@@ -1,12 +1,26 @@
 <h1 align="center">
-  Pakamew
+  🐾 Pakamew
 </h1>
+
+<table align="center">
+  <tr>
+    <td width="390" align="center">
+      <img width="390" alt="Feeder-prototype Demo" src="./static/pakamew-demo-third-pov-320px-12fps.gif" />
+      <br>
+      <sub> <i> Third-person view demo of a feeder prototype </i> </sub>
+    </td>
+    <td width="390" align="center">
+      <img width="390" alt="First-person POV Demo" src="./static/pakamew-demo-first-pov-320px-12fps.gif" />
+      <sub> <i> First-person view livestream from a camera in a feeder prototype </i> </sub>
+    </td>
+  </tr>
+</table>
 
 <table align="center">
   <tr>
     <td width="480" align="center">
       <img width="480" alt="Mr. Fresh" src="./packages/app-web/public/mr-fresh.jpg" /><br>
-      <sub> <i> Mr. Fresh, the orange "side-eye cat" popularized by Hello-Street-Cat feeder livestream clips, went viral for staring down the camera until fresh food dropped. </i> </sub>
+      <sub> <i> Mr. Fresh, inspiration of "Pakamew", the orange "side-eye cat" popularized by Hello-Street-Cat clips who went viral for staring down the camera until fresh food dropped. </i> </sub>
     </td>
   </tr>
 </table>
@@ -127,7 +141,7 @@ This project uses the following tools to enforce consistent coding conventions, 
 
 In alphabetical order:
 
-- [Geila Rigayen](https://github.com/geilala) (**@geilala**)
-- [Janille Maeh Benito](https://github.com/LoisDub) (**@LoisDub**)
-- [Lois Concepcion](https://github.com/LoisDub) (**@LoisDub**)
-- [Theone Eclarin](https://github.com/daawaan4x) (**@daawaan4x**)
+- [Geila Rigayen](https://github.com/geilala) (**@geilala**) (UI/Design)
+- [Janille Maeh Benito](https://github.com/itsjm062005) (**@itsjm062005**) (UI/Design)
+- [Lois Concepcion](https://github.com/LoisDub) (**@LoisDub**) (Electronics)
+- [Theone Eclarin](https://github.com/daawaan4x) (**@daawaan4x**) (Software)
