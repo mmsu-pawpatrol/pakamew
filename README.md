@@ -4,13 +4,13 @@
 
 <table align="center">
   <tr>
-    <td width="400" align="center">
-      <img width="400" alt="Feeder-prototype Demo" src="./static/pakamew-demo-third-pov-320px-12fps.gif" />
+    <td width="390" align="center">
+      <img width="390" alt="Feeder-prototype Demo" src="./static/pakamew-demo-third-pov-320px-12fps.gif" />
       <br>
       <sub> <i> Third-person view demo of a feeder prototype </i> </sub>
     </td>
-    <td width="400" align="center">
-      <img width="400" alt="First-person POV Demo" src="./static/pakamew-demo-first-pov-320px-12fps.gif" />
+    <td width="390" align="center">
+      <img width="390" alt="First-person POV Demo" src="./static/pakamew-demo-first-pov-320px-12fps.gif" />
       <sub> <i> First-person view livestream from a camera in a feeder prototype </i> </sub>
     </td>
   </tr>
