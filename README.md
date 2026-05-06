@@ -1,5 +1,5 @@
 <h1 align="center">
-  Pakamew
+  🐾 Pakamew
 </h1>
 
 <table align="center">
